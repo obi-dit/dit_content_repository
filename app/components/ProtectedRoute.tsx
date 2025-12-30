@@ -11,10 +11,16 @@ const ProtectedRoute = ({
   children: React.ReactNode;
 }): React.ReactNode => {
   const router = useRouter();
-
+  const shouldShowAuth = process.env.NEXT_PUBLIC_SHOW_AUTH === "true";
   useEffect(() => {
     const token = getToken();
     const isUnauthenticatedRoute = ["/login", "/signup", "/"];
+    if (
+      !shouldShowAuth &&
+      isUnauthenticatedRoute.includes(window.location.pathname)
+    ) {
+      router.replace("/");
+    }
     if (!token && !isUnauthenticatedRoute.includes(window.location.pathname)) {
       router.replace("/login");
     }

@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 
 export default function Hero() {
   const [isVisible, setIsVisible] = useState(false);
-
+  const shouldShowAuth = process.env.NEXT_PUBLIC_SHOW_AUTH === "true";
   useEffect(() => {
     setIsVisible(true);
   }, []);
@@ -51,12 +51,14 @@ export default function Hero() {
                 →
               </span>
             </Link>
-            <Link
-              href="/login"
-              className="px-8 py-4 rounded-lg border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 font-semibold text-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all transform hover:scale-105"
-            >
-              Sign In
-            </Link>
+            {shouldShowAuth && (
+              <Link
+                href="/login"
+                className="px-8 py-4 rounded-lg border-2 border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-50 font-semibold text-lg hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-all transform hover:scale-105"
+              >
+                Sign In
+              </Link>
+            )}
           </div>
 
           {/* Scroll Indicator */}

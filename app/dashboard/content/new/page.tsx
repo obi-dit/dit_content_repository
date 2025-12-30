@@ -8,7 +8,15 @@ import { getUser } from "@/utils/auth";
 
 export default function NewContentPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<{
+    title: string;
+    type: string;
+    status: "draft" | "published" | "archived";
+    description: string;
+    content: string;
+    imageUrl: string;
+    videoUrl: string;
+  }>({
     title: "",
     type: "Article",
     status: "draft",

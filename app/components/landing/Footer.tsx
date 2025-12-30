@@ -1,8 +1,9 @@
-'use client';
+"use client";
 
-import Link from 'next/link';
+import Link from "next/link";
 
 export default function Footer() {
+  const shouldShowAuth = process.env.NEXT_PUBLIC_SHOW_AUTH === "true";
   return (
     <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-zinc-900 dark:bg-zinc-950 text-zinc-400">
       <div className="max-w-7xl mx-auto">
@@ -12,8 +13,8 @@ export default function Footer() {
               DIT Tech Digital Studios
             </h3>
             <p className="text-sm leading-relaxed">
-              A fully self-contained, web-based AI-driven Digital Content Library
-              for the next generation of creators.
+              A fully self-contained, web-based AI-driven Digital Content
+              Library for the next generation of creators.
             </p>
           </div>
           <div>
@@ -35,30 +36,36 @@ export default function Footer() {
                   Benefits
                 </Link>
               </li>
-              <li>
-                <Link
-                  href="/login"
-                  className="hover:text-white transition-colors inline-block"
-                >
-                  Sign In
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/signup"
-                  className="hover:text-white transition-colors inline-block"
-                >
-                  Sign Up
-                </Link>
-              </li>
-              <li>
-                <Link
-                  href="/dashboard"
-                  className="hover:text-white transition-colors inline-block"
-                >
-                  Dashboard
-                </Link>
-              </li>
+              {shouldShowAuth && (
+                <li>
+                  <Link
+                    href="/login"
+                    className="hover:text-white transition-colors inline-block"
+                  >
+                    Sign In
+                  </Link>
+                </li>
+              )}
+              {shouldShowAuth && (
+                <li>
+                  <Link
+                    href="/signup"
+                    className="hover:text-white transition-colors inline-block"
+                  >
+                    Sign Up
+                  </Link>
+                </li>
+              )}
+              {shouldShowAuth && (
+                <li>
+                  <Link
+                    href="/dashboard"
+                    className="hover:text-white transition-colors inline-block"
+                  >
+                    Dashboard
+                  </Link>
+                </li>
+              )}
             </ul>
           </div>
           <div>
@@ -101,7 +108,3 @@ export default function Footer() {
     </footer>
   );
 }
-
-
-
-

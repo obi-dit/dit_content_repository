@@ -39,7 +39,7 @@ export default function ViewContentPage() {
       setLoading(true);
       setError(null);
       const data = await contentService.getContentById(id);
-      setContent(data);
+      setContent(data as ContentDetails);
     } catch (err: any) {
       setError(err.message || "Failed to load content");
       console.error("Error fetching content:", err);
@@ -81,7 +81,9 @@ export default function ViewContentPage() {
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <div className="text-2xl mb-4">⏳</div>
-            <p className="text-zinc-600 dark:text-zinc-400">Loading content...</p>
+            <p className="text-zinc-600 dark:text-zinc-400">
+              Loading content...
+            </p>
           </div>
         </div>
       </div>
@@ -245,4 +247,3 @@ export default function ViewContentPage() {
     </div>
   );
 }
-

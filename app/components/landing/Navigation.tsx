@@ -8,6 +8,8 @@ export default function Navigation() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const shouldShowAuth = process.env.NEXT_PUBLIC_SHOW_AUTH === "true";
+
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 50);
@@ -37,6 +39,7 @@ export default function Navigation() {
           </Link>
 
           {/* Desktop Menu */}
+
           <div className="hidden md:flex items-center gap-6">
             <Link
               href="#features"
@@ -50,21 +53,26 @@ export default function Navigation() {
             >
               Benefits
             </Link>
-            <Link
-              href="/login"
-              className="text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
-            >
-              Sign In
-            </Link>
-            <Link
-              href="/signup"
-              className="px-4 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all transform hover:scale-105"
-            >
-              Get Started
-            </Link>
+            {shouldShowAuth && (
+              <Link
+                href="/login"
+                className="text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-50 transition-colors"
+              >
+                Sign In
+              </Link>
+            )}
+            {shouldShowAuth && (
+              <Link
+                href="/signup"
+                className="px-4 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all transform hover:scale-105"
+              >
+                Get Started
+              </Link>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
+
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className="md:hidden p-2 rounded-lg text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition-colors"

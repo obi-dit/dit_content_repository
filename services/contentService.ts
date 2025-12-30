@@ -5,7 +5,7 @@ export interface Content {
   description: string;
   content: string;
   type: string;
-  status: string;
+  status: "published" | "draft" | "archived";
   imageUrl?: string;
   videoUrl?: string;
 }
@@ -23,7 +23,17 @@ export default class ContentService extends HttpService {
     return this.get("/api/content");
   }
 
-  async getContentById(id: string): Promise<Content & { _id: string; createdAt: string; updatedAt: string; views: number; userId: string }> {
+  async getContentById(
+    id: string
+  ): Promise<
+    Content & {
+      _id: string;
+      createdAt: string;
+      updatedAt: string;
+      views: number;
+      userId: string;
+    }
+  > {
     return this.get(`/api/content/${id}`);
   }
 
