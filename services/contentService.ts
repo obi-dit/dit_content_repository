@@ -1,6 +1,7 @@
 import { HttpService } from "./httpService";
 
 export interface Content {
+  id: string;
   title: string;
   description: string;
   content: string;
@@ -15,7 +16,7 @@ export default class ContentService extends HttpService {
     super();
   }
 
-  async createContent(content: Content) {
+  async createContent(content: Partial<Content>) {
     return this.post("/api/content", content);
   }
 
@@ -23,9 +24,7 @@ export default class ContentService extends HttpService {
     return this.get("/api/content");
   }
 
-  async getContentById(
-    id: string
-  ): Promise<
+  async getContentById(id: string): Promise<
     Content & {
       _id: string;
       createdAt: string;
@@ -37,7 +36,7 @@ export default class ContentService extends HttpService {
     return this.get(`/api/content/${id}`);
   }
 
-  async updateContent(id: string, content: Content) {
+  async updateContent(id: string, content: Partial<Content>) {
     return this.put(`/api/content/${id}`, content);
   }
 

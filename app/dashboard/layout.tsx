@@ -37,7 +37,7 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="flex h-screen bg-zinc-50 dark:bg-zinc-900">
+    <div className="flex h-screen bg-[#0a0a0a]">
       {/* Sidebar */}
       <aside
         className={`${

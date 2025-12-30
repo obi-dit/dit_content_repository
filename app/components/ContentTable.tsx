@@ -1,5 +1,6 @@
 "use client";
 
+import { Content } from "@/services/contentService";
 import { useState, useEffect } from "react";
 
 export interface ContentItem {
@@ -14,7 +15,7 @@ export interface ContentItem {
 }
 
 interface ContentTableProps {
-  items: ContentItem[];
+  items: Array<ContentItem | Content>;
   title?: string;
   showSearch?: boolean;
   showFilter?: boolean;
@@ -34,7 +35,8 @@ export default function ContentTable({
 }: ContentTableProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("all");
-  const [filteredItems, setFilteredItems] = useState(items);
+  const [filteredItems, setFilteredItems] =
+    useState<(ContentItem | Content)[]>(items);
 
   useEffect(() => {
     let filtered = items;
@@ -71,20 +73,24 @@ export default function ContentTable({
     );
   };
 
-  const handleEdit = (item: ContentItem) => {
-    if (onEdit) {
+  const isContentItem = (item: ContentItem | Content): item is ContentItem => {
+    return "author" in item && "views" in item && "lastModified" in item;
+  };
+
+  const handleEdit = (item: ContentItem | Content) => {
+    if (onEdit && isContentItem(item)) {
       onEdit(item);
     }
   };
 
-  const handleView = (item: ContentItem) => {
-    if (onView) {
+  const handleView = (item: ContentItem | Content) => {
+    if (onView && isContentItem(item)) {
       onView(item);
     }
   };
 
-  const handleMore = (item: ContentItem) => {
-    if (onMore) {
+  const handleMore = (item: ContentItem | Content) => {
+    if (onMore && isContentItem(item)) {
       onMore(item);
     }
   };
@@ -119,6 +125,7 @@ export default function ContentTable({
                   value={filterStatus}
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  aria-label="Filter by status"
                 >
                   <option value="all">All Status</option>
                   <option value="published">Published</option>
@@ -178,7 +185,7 @@ export default function ContentTable({
                         {item.title}
                       </span>
                       <span className="text-sm text-zinc-500 dark:text-zinc-400">
-                        by {item.author}
+                        by {"author" in item ? item.author : "Unknown"}
                       </span>
                     </div>
                   </td>
@@ -187,10 +194,12 @@ export default function ContentTable({
                   </td>
                   <td className="px-6 py-4">{getStatusBadge(item.status)}</td>
                   <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {item.views.toLocaleString()}
+                    {"views" in item ? item.views.toLocaleString() : "0"}
                   </td>
                   <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
-                    {new Date(item.createdAt).toLocaleDateString()}
+                    {"createdAt" in item
+                      ? new Date(item.createdAt).toLocaleDateString()
+                      : "N/A"}
                   </td>
                   <td className="px-6 py-4 text-right">
                     <div className="flex items-center justify-end gap-2">

@@ -4,18 +4,18 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ContentTable, { ContentItem } from "../../components/ContentTable";
-import { contentService } from "@/services/contentService";
+import { Content, contentService } from "@/services/contentService";
 
 // Mock data - replace with API calls
 
 export default function ContentPage() {
   const router = useRouter();
-  const [content, setContent] = useState<ContentItem[]>([]);
+  const [content, setContent] = useState<Array<ContentItem | Content>>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ContentItem | null>(null);
 
-  const handleEdit = (item: ContentItem) => {
+  const handleEdit = (item: ContentItem | Content) => {
     // Navigate to edit page
     router.push(`/dashboard/content/edit/${item.id}`);
   };

@@ -35,54 +35,6 @@ const stats = [
   },
 ];
 
-const recentContent: ContentItem[] = [
-  {
-    id: "1",
-    title: "Getting Started with Next.js",
-    type: "Article",
-    status: "published",
-    views: 1234,
-    lastModified: "2 hours ago",
-    author: "John Doe",
-  },
-  {
-    id: "2",
-    title: "API Best Practices",
-    type: "Documentation",
-    status: "published",
-    views: 892,
-    lastModified: "5 hours ago",
-    author: "Jane Smith",
-  },
-  {
-    id: "3",
-    title: "Design System Guide",
-    type: "Guide",
-    status: "draft",
-    views: 0,
-    lastModified: "1 day ago",
-    author: "John Doe",
-  },
-  {
-    id: "4",
-    title: "Content Strategy 2024",
-    type: "Article",
-    status: "published",
-    views: 2341,
-    lastModified: "2 days ago",
-    author: "Jane Smith",
-  },
-  {
-    id: "5",
-    title: "Technical Documentation",
-    type: "Documentation",
-    status: "archived",
-    views: 567,
-    lastModified: "3 days ago",
-    author: "John Doe",
-  },
-];
-
 export default function DashboardPage() {
   const handleEdit = (item: ContentItem) => {
     console.log("Edit item:", item);

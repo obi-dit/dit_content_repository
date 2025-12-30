@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { contentService } from "@/services/contentService";
+import { Content, contentService } from "@/services/contentService";
 import { getUser } from "@/utils/auth";
 
 export default function NewContentPage() {
@@ -207,7 +207,7 @@ export default function NewContentPage() {
       }
 
       // Create content with uploaded URLs
-      const contentData = {
+      const contentData: Partial<Content> = {
         ...formData,
         type: formData.type.toLowerCase(),
         imageUrl: finalImageUrl || undefined,
