@@ -11,6 +11,7 @@
 
 import { TOKEN_KEY } from "@/utils/auth";
 import { toast } from "react-toastify";
+import { ForbiddenError, UnauthorizedError } from "@/utils/errors";
 
 export interface HttpServiceConfig {
   baseURL?: string;
@@ -172,14 +173,46 @@ export class HttpService {
       if (response.status === 400) {
         console.log("response", errorData);
         if (errorData) {
-          if (Array.isArray(errorData.data.message)) {
-            errorData.data.message.forEach((message: string) => {
+          const dataMessage = errorData.data?.message;
+          if (Array.isArray(dataMessage)) {
+            dataMessage.forEach((message: string) => {
               toast.error(message);
             });
+          } else if (dataMessage) {
+            toast.error(dataMessage);
           } else {
-            toast.error(errorData.data.message);
+            toast.error(errorData.message || "Bad request");
           }
         }
+        // Throw error to prevent further processing
+        throw new Error(errorMessage);
+      }
+
+      if (response.status === 403) {
+        // Forbidden - Permission denied
+        let permissionErrorMessage =
+          "You do not have permission to perform this action";
+
+        if (errorData) {
+          // Extract message from errorData - handle different possible structures
+          const dataMessage = errorData.data?.message;
+          permissionErrorMessage =
+            errorData.message ||
+            (typeof dataMessage === "string"
+              ? dataMessage
+              : Array.isArray(dataMessage)
+              ? dataMessage[0]
+              : undefined) ||
+            permissionErrorMessage;
+        }
+
+        toast.error(permissionErrorMessage, {
+          autoClose: 5000,
+          position: "top-right",
+        });
+
+        // Throw ForbiddenError so pages can detect and show appropriate UI
+        throw new ForbiddenError(permissionErrorMessage);
       }
     }
 
@@ -198,7 +231,8 @@ export class HttpService {
     config: RequestConfig = {}
   ): Promise<T> {
     const url = this.buildURL(endpoint, config.params);
-    const headers = config.headers || this.buildHeaders(config);
+    // Always build headers and merge with any custom headers from config
+    const headers = this.buildHeaders(config);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), this.timeout);

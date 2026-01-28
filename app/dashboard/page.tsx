@@ -1,41 +1,91 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import ContentTable, { ContentItem } from "../components/ContentTable";
 import RecentActivity from "../components/RecentActivity";
-
-const stats = [
-  {
-    name: "Total Content",
-    value: "1,234",
-    change: "+12%",
-    changeType: "positive",
-    icon: "📄",
-  },
-  {
-    name: "Published",
-    value: "892",
-    change: "+8%",
-    changeType: "positive",
-    icon: "✅",
-  },
-  {
-    name: "Total Views",
-    value: "45.2K",
-    change: "+23%",
-    changeType: "positive",
-    icon: "👁️",
-  },
-  {
-    name: "Draft Items",
-    value: "342",
-    change: "-5%",
-    changeType: "negative",
-    icon: "📝",
-  },
-];
+import { dashboardService, DashboardData } from "@/services/dashboardService";
+import MainLoader from "../components/MainLoader";
+import AccessDenied from "../components/AccessDenied";
+import { isForbiddenError } from "@/utils/errors";
 
 export default function DashboardPage() {
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(
+    null
+  );
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [isForbidden, setIsForbidden] = useState(false);
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      setIsForbidden(false);
+      const data = await dashboardService.getDashboardData();
+      setDashboardData(data);
+    } catch (err) {
+      if (isForbiddenError(err)) {
+        setIsForbidden(true);
+        setError(err.message);
+      } else {
+        setError(
+          err instanceof Error ? err.message : "Failed to load dashboard data"
+        );
+      }
+      console.error("Error loading dashboard data:", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const formatNumber = (num: number): string => {
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1) + "M";
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1) + "K";
+    }
+    return num.toLocaleString();
+  };
+
+  const stats = dashboardData
+    ? [
+        {
+          name: "Total Content",
+          value: formatNumber(dashboardData.stats.totalContent),
+          change: "+12%",
+          changeType: "positive" as const,
+          icon: "📄",
+        },
+        {
+          name: "Published",
+          value: formatNumber(dashboardData.stats.published),
+          change: dashboardData.stats.publishedChange || "+8%",
+          changeType: "positive" as const,
+          icon: "✅",
+        },
+        {
+          name: "Total Views",
+          value: formatNumber(dashboardData.stats.totalViews),
+          change: dashboardData.stats.viewsChange || "+23%",
+          changeType: "positive" as const,
+          icon: "👁️",
+        },
+        {
+          name: "Draft Items",
+          value: formatNumber(dashboardData.stats.draft),
+          change: "-5%",
+          changeType: "negative" as const,
+          icon: "📝",
+        },
+      ]
+    : [];
+
   const handleEdit = (item: ContentItem) => {
     console.log("Edit item:", item);
     // TODO: Implement edit functionality
@@ -50,6 +100,38 @@ export default function DashboardPage() {
     console.log("More options for item:", item);
     // TODO: Implement more options menu
   };
+
+  if (isLoading) {
+    return <MainLoader message="Loading dashboard..." />;
+  }
+
+  if (isForbidden) {
+    return (
+      <AccessDenied
+        title="Dashboard Access Denied"
+        message={error || "You don't have permission to view the dashboard. Please contact your administrator to request access."}
+        resource="/dashboard"
+        showLogoutButton={true}
+        onRetry={loadDashboardData}
+      />
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex-1 overflow-y-auto flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 dark:text-red-400 mb-4">{error}</p>
+          <button
+            onClick={loadDashboardData}
+            className="px-4 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors"
+          >
+            Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -168,7 +250,11 @@ export default function DashboardPage() {
           </div>
 
           {/* Recent Activity */}
-          <RecentActivity />
+          <RecentActivity
+            activities={dashboardData?.recentActivity || []}
+            title="Recent Activity"
+            maxItems={5}
+          />
         </div>
       </main>
     </div>

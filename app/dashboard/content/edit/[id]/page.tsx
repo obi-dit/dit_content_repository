@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
-import { contentService } from "@/services/contentService";
+import { contentService, Content } from "@/services/contentService";
 import { getUser } from "@/utils/auth";
 
 interface ContentDetails {
@@ -233,7 +233,7 @@ export default function EditContentPage() {
       }
 
       // Update content with uploaded URLs
-      const contentData = {
+      const contentData: Partial<Content> = {
         ...formData,
         type: formData.type.toLowerCase(),
         imageUrl: finalImageUrl || undefined,

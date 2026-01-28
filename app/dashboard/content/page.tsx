@@ -5,15 +5,22 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import ContentTable, { ContentItem } from "../../components/ContentTable";
 import { Content, contentService } from "@/services/contentService";
-
-// Mock data - replace with API calls
+import MainLoader from "@/app/components/MainLoader";
+import PermissionGate from "@/app/components/PermissionGate";
+import { PermissionResource, PermissionAction } from "@/typings/permissions";
+import { usePermissions } from "@/contexts/PermissionContext";
 
 export default function ContentPage() {
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
   const [content, setContent] = useState<Array<ContentItem | Content>>([]);
   const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set());
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState<ContentItem | null>(null);
+  const { hasPermission } = usePermissions();
+
+  const canCreate = hasPermission(PermissionResource.CONTENT, PermissionAction.CREATE);
+  const canDelete = hasPermission(PermissionResource.CONTENT, PermissionAction.DELETE);
 
   const handleEdit = (item: ContentItem | Content) => {
     // Navigate to edit page
@@ -22,6 +29,7 @@ export default function ContentPage() {
 
   const handleView = (item: ContentItem) => {
     // Navigate to view page
+    console.log("View item:", item);
     router.push(`/dashboard/content/${item.id}`);
   };
 
@@ -67,10 +75,12 @@ export default function ContentPage() {
 
   const getAllContents = async () => {
     const response = await contentService.getAllContents();
+    setLoading(false);
     setContent(response);
   };
 
   useEffect(() => {
+    setLoading(true);
     getAllContents();
   }, []);
 
@@ -80,6 +90,10 @@ export default function ContentPage() {
     draft: content.filter((item) => item.status === "draft").length,
     archived: content.filter((item) => item.status === "archived").length,
   };
+
+  if (loading) {
+    return <MainLoader message="Loading content..." />;
+  }
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -95,7 +109,7 @@ export default function ContentPage() {
             </p>
           </div>
           <div className="flex items-center gap-3">
-            {selectedItems.size > 0 && (
+            {selectedItems.size > 0 && canDelete && (
               <button
                 onClick={handleBulkDelete}
                 className="px-4 py-2 rounded-lg bg-red-600 text-white font-semibold hover:bg-red-700 transition-colors text-sm"
@@ -103,12 +117,14 @@ export default function ContentPage() {
                 Delete Selected ({selectedItems.size})
               </button>
             )}
-            <Link
-              href="/dashboard/content/new"
-              className="px-4 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all transform hover:scale-105 text-sm sm:text-base"
-            >
-              + New Content
-            </Link>
+            {canCreate && (
+              <Link
+                href="/dashboard/content/new"
+                className="px-4 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all transform hover:scale-105 text-sm sm:text-base"
+              >
+                + New Content
+              </Link>
+            )}
           </div>
         </div>
       </header>

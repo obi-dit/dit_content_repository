@@ -1,4 +1,5 @@
 import { HttpService } from "./httpService";
+import { getUser } from "@/utils/auth";
 
 export interface Content {
   id: string;
@@ -11,9 +12,57 @@ export interface Content {
   videoUrl?: string;
 }
 
+export interface PublicContent {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  status: "published" | "draft" | "archived";
+  views: number;
+  imageUrl?: string;
+  videoUrl?: string;
+  author: string;
+  authorId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface PublicContentDetail extends PublicContent {
+  content: string;
+}
+
 export default class ContentService extends HttpService {
   constructor() {
     super();
+  }
+
+  /**
+   * Get all published content (public - no auth required)
+   */
+  async getPublishedContent(): Promise<PublicContent[]> {
+    return this.get<PublicContent[]>("/api/content/public/published", {
+      skipAuth: true,
+    });
+  }
+
+  /**
+   * Get a single published content by ID (public - no auth required)
+   * Also tracks unique views per user
+   * Sends x-user-id header if user is logged in for proper view tracking
+   */
+  async getPublicContentById(id: string): Promise<PublicContentDetail> {
+    const user = getUser();
+    const headers: Record<string, string> = {};
+
+    // Send user ID in header for view tracking if logged in
+    if (user?.id) {
+      headers["x-user-id"] = user.id;
+    }
+
+    return this.get<PublicContentDetail>(`/api/content/public/${id}`, {
+      skipAuth: true,
+      headers,
+    });
   }
 
   async createContent(content: Partial<Content>) {

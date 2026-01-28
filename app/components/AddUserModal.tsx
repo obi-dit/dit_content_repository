@@ -1,11 +1,13 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState, FormEvent, useEffect } from "react";
 import Modal from "./Modal";
 import { User } from "./settings/Users";
 
 import { settingsService } from "@/services/settingsService";
+import { rolesPermissionService, Role } from "@/services/rolesPermissionService";
 import { toast } from "react-toastify";
+
 interface AddUserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -21,10 +23,38 @@ export default function AddUserModal({
     firstName: "",
     lastName: "",
     email: "",
-    role: "viewer" as "admin" | "editor" | "viewer",
+    roleId: "",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [isLoadingRoles, setIsLoadingRoles] = useState(false);
+
+  // Fetch roles when modal opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchRoles();
+    }
+  }, [isOpen]);
+
+  const fetchRoles = async () => {
+    setIsLoadingRoles(true);
+    try {
+      const fetchedRoles = await rolesPermissionService.getRoles();
+      setRoles(fetchedRoles.filter((role) => role.isActive));
+      
+      // Set default role if available
+      if (fetchedRoles.length > 0 && !formData.roleId) {
+        const defaultRole = fetchedRoles.find((r) => r.isDefault) || fetchedRoles[0];
+        setFormData((prev) => ({ ...prev, roleId: defaultRole._id }));
+      }
+    } catch (error) {
+      console.error("Failed to fetch roles:", error);
+      toast.error("Failed to load roles");
+    } finally {
+      setIsLoadingRoles(false);
+    }
+  };
 
   const validate = () => {
     const newErrors: Record<string, string> = {};
@@ -33,10 +63,18 @@ export default function AddUserModal({
       newErrors.firstName = "First name is required";
     }
 
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = "Last name is required";
+    }
+
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = "Please enter a valid email address";
+    }
+
+    if (!formData.roleId) {
+      newErrors.roleId = "Please select a role";
     }
 
     setErrors(newErrors);
@@ -53,9 +91,23 @@ export default function AddUserModal({
     setIsLoading(true);
 
     try {
-      // Simulate API call
-      await settingsService.createCompanyUser(formData);
+      await settingsService.createCompanyUser({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        roleId: formData.roleId,
+      });
       toast.success("User added successfully");
+      
+      // Call onAdd with user data for UI update
+      const selectedRole = roles.find((r) => r._id === formData.roleId);
+      onAdd({
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        role: selectedRole?.name || "viewer",
+      });
+      
       handleClose();
     } catch (error) {
       toast.error("Error adding user");
@@ -69,7 +121,7 @@ export default function AddUserModal({
       firstName: "",
       lastName: "",
       email: "",
-      role: "viewer",
+      roleId: roles.length > 0 ? (roles.find((r) => r.isDefault)?._id || roles[0]._id) : "",
     });
     setErrors({});
     onClose();
@@ -125,7 +177,6 @@ export default function AddUserModal({
         </div>
 
         {/* Last Name Field */}
-
         <div>
           <label
             htmlFor="lastName"
@@ -184,25 +235,49 @@ export default function AddUserModal({
         {/* Role Field */}
         <div>
           <label
-            htmlFor="role"
+            htmlFor="roleId"
             className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
           >
             Role <span className="text-red-500">*</span>
           </label>
           <select
-            id="role"
-            name="role"
-            value={formData.role}
+            id="roleId"
+            name="roleId"
+            value={formData.roleId}
             onChange={handleChange}
-            className="w-full px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            disabled={isLoadingRoles}
+            className={`w-full px-4 py-2 rounded-lg border ${
+              errors.roleId
+                ? "border-red-500 focus:ring-red-500"
+                : "border-zinc-300 dark:border-zinc-700 focus:ring-blue-500"
+            } bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed`}
           >
-            <option value="viewer">Viewer</option>
-            <option value="editor">Editor</option>
-            <option value="admin">Admin</option>
+            {isLoadingRoles ? (
+              <option value="">Loading roles...</option>
+            ) : roles.length === 0 ? (
+              <option value="">No roles available</option>
+            ) : (
+              <>
+                <option value="">Select a role</option>
+                {roles.map((role) => (
+                  <option key={role._id} value={role._id}>
+                    {role.name}
+                    {role.isDefault ? " (Default)" : ""}
+                  </option>
+                ))}
+              </>
+            )}
           </select>
-          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
-            Select the user's role and permissions level
-          </p>
+          {errors.roleId && (
+            <p className="mt-1 text-sm text-red-600 dark:text-red-400">
+              {errors.roleId}
+            </p>
+          )}
+          {!isLoadingRoles && formData.roleId && (
+            <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+              {roles.find((r) => r._id === formData.roleId)?.description || ""}
+            </p>
+          )}
         </div>
 
         {/* Action Buttons */}
@@ -218,7 +293,7 @@ export default function AddUserModal({
           <button
             type="submit"
             className="px-4 py-2 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 font-semibold hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-            disabled={isLoading}
+            disabled={isLoading || isLoadingRoles || roles.length === 0}
           >
             {isLoading ? "Adding..." : "Add User"}
           </button>

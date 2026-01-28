@@ -3,7 +3,8 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { getToken } from "@/utils/auth";
-import { ToastContainer, toast } from "react-toastify";
+import { ToastContainer } from "react-toastify";
+import { PermissionProvider } from "@/contexts/PermissionContext";
 
 const ProtectedRoute = ({
   children,
@@ -12,6 +13,7 @@ const ProtectedRoute = ({
 }): React.ReactNode => {
   const router = useRouter();
   const shouldShowAuth = process.env.NEXT_PUBLIC_SHOW_AUTH === "true";
+
   useEffect(() => {
     const token = getToken();
     const isUnauthenticatedRoute = ["/login", "/signup", "/"];
@@ -24,12 +26,13 @@ const ProtectedRoute = ({
     if (!token && !isUnauthenticatedRoute.includes(window.location.pathname)) {
       router.replace("/login");
     }
-  }, [router]);
+  }, [router, shouldShowAuth]);
 
   return (
-    <>
-      {children} <ToastContainer />
-    </>
+    <PermissionProvider>
+      {children}
+      <ToastContainer />
+    </PermissionProvider>
   );
 };
 

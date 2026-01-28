@@ -6,8 +6,10 @@ import Link from "next/link";
 import { GiPadlock } from "react-icons/gi";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import httpService from "@/services/httpService";
-import { saveToken, setUser } from "@/utils/auth";
-import { AuthResponse, Role, UserType } from "@/typings/auth";
+import { saveToken, setUser, savePermissions } from "@/utils/auth";
+import { AuthResponse, UserType } from "@/typings/auth";
+import { permissionService } from "@/services/permissionService";
+
 export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState("");
@@ -32,16 +34,27 @@ export default function LoginPage() {
     setError("");
     setIsLoading(true);
 
-    // TODO: Implement actual authentication logic
     try {
-      // Simulate API call
+      // Login API call
       const response = await httpService.post<AuthResponse>("/api/auth/login", {
         email,
         password,
       });
+
       if (response.success) {
         saveToken(response.token);
         setUser(response.data);
+
+        // Fetch and save permissions for company users
+        if (response.data.userType === UserType.COMPANY_USER) {
+          try {
+            const userPermissions = await permissionService.getUserPermissions();
+            savePermissions(userPermissions);
+          } catch (permError) {
+            console.error("Failed to fetch permissions:", permError);
+            // Continue with login even if permissions fail to load
+          }
+        }
       }
 
       // Save email if remember me is checked
@@ -52,7 +65,7 @@ export default function LoginPage() {
       }
 
       // Redirect to dashboard after successful login
-      if (response.data.userType === UserType.ADMIN) {
+      if (response.data.userType === UserType.COMPANY_USER) {
         router.push("/dashboard");
       } else {
         router.push("/content");

@@ -15,6 +15,7 @@ export enum UserType {
   COMPANY_USER = "company_user",
 }
 export interface User {
+  id: string;
   firstName: string;
   lastName: string;
   email: string;

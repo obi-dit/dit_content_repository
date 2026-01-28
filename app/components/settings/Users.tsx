@@ -6,6 +6,9 @@ import {
   CompanyUserProfile,
   settingsService,
 } from "@/services/settingsService";
+import { rolesPermissionService, Role } from "@/services/rolesPermissionService";
+import MainLoader from "../MainLoader";
+import { UserType } from "@/enums/general";
 
 export interface User {
   id: string;
@@ -13,66 +16,18 @@ export interface User {
   lastName: string;
   email: string;
   date_created: string;
-  role: "admin" | "editor" | "viewer";
+  role: string;
+  userType?: UserType;
 }
-
-// Mock user data - replace with API calls
-const initialUsers: User[] = [
-  {
-    id: "1",
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
-    date_created: "2024-01-15",
-    role: "admin",
-  },
-  {
-    id: "2",
-    firstName: "Jane",
-    lastName: "Smith",
-    email: "jane.smith@example.com",
-    date_created: "2024-02-20",
-    role: "editor",
-  },
-  {
-    id: "3",
-    firstName: "Bob",
-    lastName: "Johnson",
-    email: "bob.johnson@example.com",
-    date_created: "2024-03-10",
-    role: "editor",
-  },
-  {
-    id: "4",
-    firstName: "Alice",
-    lastName: "Williams",
-    email: "alice.williams@example.com",
-    date_created: "2024-03-25",
-    role: "viewer",
-  },
-  {
-    id: "5",
-    firstName: "Charlie",
-    lastName: "Brown",
-    email: "charlie.brown@example.com",
-    date_created: "2024-04-05",
-    role: "viewer",
-  },
-  {
-    id: "6",
-    firstName: "Diana",
-    lastName: "Prince",
-    email: "diana.prince@example.com",
-    date_created: "2024-04-18",
-    role: "editor",
-  },
-];
 
 export default function Users() {
   const [users, setUsers] = useState<CompanyUserProfile[]>([]);
+  const [roles, setRoles] = useState<Role[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterRole, setFilterRole] = useState<string>("all");
-  const [filteredUsers, setFilteredUsers] = useState(users);
+  const [filteredUsers, setFilteredUsers] =
+    useState<CompanyUserProfile[]>(users);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
 
   useEffect(() => {
@@ -89,17 +44,45 @@ export default function Users() {
     }
 
     if (filterRole !== "all") {
-      filtered = filtered.filter((user) => user.role === filterRole);
+      filtered = filtered.filter(
+        (user) => user.role?.toLowerCase() === filterRole.toLowerCase()
+      );
     }
 
     setFilteredUsers(filtered);
   }, [searchQuery, filterRole, users]);
 
+  const fetchUsers = async () => {
+    try {
+      const fetchedUsers = await settingsService.getCompanyUsers();
+      setUsers(fetchedUsers);
+    } catch (error) {
+      console.error("Failed to fetch users:", error);
+    }
+  };
+
+  const fetchRoles = async () => {
+    try {
+      const fetchedRoles = await rolesPermissionService.getRoles();
+      setRoles(fetchedRoles.filter((role) => role.isActive));
+    } catch (error) {
+      console.error("Failed to fetch roles:", error);
+    }
+  };
+
   useEffect(() => {
-    settingsService.getCompanyUsers().then((users) => {
-      setUsers(users);
-    });
+    const loadData = async () => {
+      setIsLoading(true);
+      await Promise.all([fetchUsers(), fetchRoles()]);
+      setIsLoading(false);
+    };
+    loadData();
   }, []);
+
+  if (isLoading) {
+    console.log("Loading users...");
+    return <MainLoader message="Loading users..." />;
+  }
 
   const getRoleBadge = (role: string) => {
     const styles = {
@@ -121,6 +104,34 @@ export default function Users() {
     );
   };
 
+  const getUserTypeBadge = (userType?: string) => {
+    if (!userType) {
+      return (
+        <span className="px-2 py-1 rounded-full text-xs font-medium bg-zinc-100 dark:bg-zinc-900/30 text-zinc-800 dark:text-zinc-300">
+          N/A
+        </span>
+      );
+    }
+    const styles: Record<string, string> = {
+      admin:
+        "bg-purple-100 dark:bg-purple-900/30 text-purple-800 dark:text-purple-300",
+      company_user:
+        "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
+      user:
+        "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300",
+    };
+    const normalizedType = userType.toLowerCase();
+    return (
+      <span
+        className={`px-2 py-1 rounded-full text-xs font-medium ${
+          styles[normalizedType] || "bg-zinc-100 dark:bg-zinc-900/30 text-zinc-800 dark:text-zinc-300"
+        }`}
+      >
+        {userType.replace(/_/g, " ").charAt(0).toUpperCase() + userType.replace(/_/g, " ").slice(1)}
+      </span>
+    );
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString("en-US", {
@@ -130,32 +141,26 @@ export default function Users() {
     });
   };
 
-  const handleEdit = (user: User) => {
-    // TODO: Implement edit functionality
-    console.log("Edit user:", user);
-    // Could open a modal or navigate to edit page
+  const handleEdit = (user: CompanyUserProfile) => {
+    // Navigate to edit user page
+    window.location.href = `/dashboard/settings/users/edit/${user.id}`;
   };
 
-  const handleDelete = (user: User) => {
-    // TODO: Implement delete functionality with confirmation
+  const handleDelete = async (user: CompanyUserProfile) => {
+    // Implement delete functionality with confirmation
     if (confirm(`Are you sure you want to delete ${user.firstName}?`)) {
-      setUsers(users.filter((u) => u.id !== user.id));
-      console.log("Delete user:", user);
+      try {
+        await settingsService.deleteCompanyUser(user.id);
+        setUsers(users.filter((u) => u.id !== user.id));
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+      }
     }
   };
 
-  const handleAddUser = (userData: Omit<User, "id" | "date_created">) => {
-    // Generate a unique ID (find max ID and add 1, or use timestamp as fallback)
-    const maxId = users.reduce((max, user) => {
-      const userId = parseInt(user.id, 10);
-      return !isNaN(userId) && userId > max ? userId : max;
-    }, 0);
-    const newUser: User = {
-      ...userData,
-      id: String(maxId + 1),
-      date_created: new Date().toISOString().split("T")[0],
-    };
-    setUsers([...users, newUser]);
+  const handleAddUser = async () => {
+    // Refresh the user list from API after adding a new user
+    await fetchUsers();
   };
 
   return (
@@ -204,11 +209,14 @@ export default function Users() {
                 value={filterRole}
                 onChange={(e) => setFilterRole(e.target.value)}
                 className="px-4 py-2 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                aria-label="Filter by role"
               >
                 <option value="all">All Roles</option>
-                <option value="admin">Admin</option>
-                <option value="editor">Editor</option>
-                <option value="viewer">Viewer</option>
+                {roles.map((role) => (
+                  <option key={role._id} value={role.name.toLowerCase()}>
+                    {role.name}
+                  </option>
+                ))}
               </select>
             </div>
           </div>
@@ -231,7 +239,11 @@ export default function Users() {
                     Date Created
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
-                    Role
+                    USER TYPE
+                  </th>
+
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
+                    ROLE
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-semibold text-zinc-600 dark:text-zinc-400 uppercase tracking-wider">
                     Actions
@@ -267,6 +279,9 @@ export default function Users() {
                       </td>
                       <td className="px-6 py-4 text-sm text-zinc-600 dark:text-zinc-400">
                         {formatDate(user.date_created)}
+                      </td>
+                      <td className="px-6 py-4">
+                        {getUserTypeBadge(user.userType)}
                       </td>
                       <td className="px-6 py-4">{getRoleBadge(user.role)}</td>
                       <td className="px-6 py-4 text-right">

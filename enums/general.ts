@@ -21,3 +21,9 @@ export enum ContentAuthor {
   USER = "user",
   ADMIN = "admin",
 }
+
+export enum UserType {
+  ADMIN = "admin",
+  USER = "user",
+  COMPANY_USER = "company_user",
+}

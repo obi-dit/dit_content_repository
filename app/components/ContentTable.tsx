@@ -74,7 +74,7 @@ export default function ContentTable({
   };
 
   const isContentItem = (item: ContentItem | Content): item is ContentItem => {
-    return "author" in item && "views" in item && "lastModified" in item;
+    return "author" in item && "views" in item && "createdAt" in item;
   };
 
   const handleEdit = (item: ContentItem | Content) => {
@@ -84,6 +84,7 @@ export default function ContentTable({
   };
 
   const handleView = (item: ContentItem | Content) => {
+    console.log("View item:", item);
     if (onView && isContentItem(item)) {
       onView(item);
     }
