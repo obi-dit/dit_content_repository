@@ -147,10 +147,10 @@ export default function DashboardLayout({
           {sidebarOpen && (
             <Image
               src="/assets/logo_trans.png"
-              alt="DIT Tech Digital Studios"
+              alt="DIT Digital Studios"
               width={300}
               height={300}
-              className="w-30 h-30"
+              className="w-30 h-30 object-contain"
             />
           )}
           <button

@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
           <div className="sm:col-span-2 lg:col-span-1">
             <h3 className="text-white font-bold text-lg mb-4">
-              DIT Tech Digital Studios
+              DIT Digital Studios
             </h3>
             <p className="text-sm leading-relaxed">
               A fully self-contained, web-based AI-driven Digital Content
@@ -68,23 +68,7 @@ export default function Footer() {
               )}
             </ul>
           </div>
-          <div>
-            <h3 className="text-white font-bold text-lg mb-4">Programs</h3>
-            <ul className="space-y-2 text-sm">
-              <li className="hover:text-white transition-colors cursor-default">
-                AI Essentials Program
-              </li>
-              <li className="hover:text-white transition-colors cursor-default">
-                AI Technology Program
-              </li>
-              <li className="hover:text-white transition-colors cursor-default">
-                Digital Content Creation
-              </li>
-              <li className="hover:text-white transition-colors cursor-default">
-                Student Internships
-              </li>
-            </ul>
-          </div>
+         
           <div>
             <h3 className="text-white font-bold text-lg mb-4">Contact</h3>
             <ul className="space-y-2 text-sm">
@@ -102,7 +86,7 @@ export default function Footer() {
           </div>
         </div>
         <div className="border-t border-zinc-800 pt-8 text-center text-sm">
-          <p>© 2024 DIT Tech Digital Studios. All rights reserved.</p>
+          <p>© 2026 DIT Digital Studios. All rights reserved.</p>
         </div>
       </div>
     </footer>

@@ -14,7 +14,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "DIT Tech Digital Studios - AI-Driven Digital Content Library",
+  title: "DIT Digital Studios - AI-Driven Digital Content Library",
   description:
     "A fully self-contained, web-based AI-driven Digital Content Library serving as a production and training hub for DIT's AI Essentials and Technology Programs. Empowering youth ages 14-17 to build professional portfolios and earn income as AI Content Creators.",
 };

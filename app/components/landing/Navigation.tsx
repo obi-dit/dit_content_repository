@@ -31,10 +31,10 @@ export default function Navigation() {
           <Link href="/" className="flex items-center">
             <Image
               src="/assets/logo_trans.png"
-              alt="DIT Tech Digital Studios"
+              alt="DIT Digital Studios"
               width={400}
               height={400}
-              className="w-40 h-40"
+              className="w-40 h-40 object-contain"
             />
           </Link>
 

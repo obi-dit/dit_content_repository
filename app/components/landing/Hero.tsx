@@ -26,7 +26,7 @@ export default function Hero() {
         >
           <div className="inline-block mb-6 animate-fade-in">
             <span className="px-4 py-2 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 text-sm font-semibold shadow-lg">
-              🚀 DIT TECH DIGITAL STUDIOS
+              🚀 DIT DIGITAL STUDIOS
             </span>
           </div>
           <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-bold text-zinc-900 dark:text-zinc-50 mb-6 leading-tight">
