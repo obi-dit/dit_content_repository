@@ -262,7 +262,7 @@ export default function LoginPage() {
           </form>
 
           {/* Sign Up Link */}
-          <div className="mt-6 text-center">
+          {/* <div className="mt-6 text-center">
             <p className="text-sm text-zinc-600 dark:text-zinc-400">
               Don't have an account?{" "}
               <Link
@@ -273,7 +273,7 @@ export default function LoginPage() {
                 <span>→</span>
               </Link>
             </p>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
