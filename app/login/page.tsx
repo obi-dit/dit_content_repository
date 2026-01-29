@@ -50,6 +50,7 @@ export default function LoginPage() {
           try {
             const userPermissions = await permissionService.getUserPermissions();
             savePermissions(userPermissions);
+            window.location.reload();
           } catch (permError) {
             console.error("Failed to fetch permissions:", permError);
             // Continue with login even if permissions fail to load
