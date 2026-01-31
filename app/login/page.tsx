@@ -6,12 +6,14 @@ import Link from "next/link";
 import { GiPadlock } from "react-icons/gi";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import httpService from "@/services/httpService";
-import { saveToken, setUser, savePermissions } from "@/utils/auth";
+import { saveToken, setUser } from "@/utils/auth";
 import { AuthResponse, UserType } from "@/typings/auth";
 import { permissionService } from "@/services/permissionService";
+import { usePermissions } from "@/contexts/PermissionContext";
 
 export default function LoginPage() {
   const router = useRouter();
+  const { setPermissions } = usePermissions();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -49,8 +51,7 @@ export default function LoginPage() {
         if (response.data.userType === UserType.COMPANY_USER) {
           try {
             const userPermissions = await permissionService.getUserPermissions();
-            savePermissions(userPermissions);
-            window.location.reload();
+            setPermissions(userPermissions);
           } catch (permError) {
             console.error("Failed to fetch permissions:", permError);
             // Continue with login even if permissions fail to load
