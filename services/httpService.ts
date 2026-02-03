@@ -9,9 +9,16 @@
  * - Token management
  */
 
+import axios, {
+  AxiosInstance,
+  AxiosRequestConfig,
+  AxiosError,
+  AxiosProgressEvent,
+  InternalAxiosRequestConfig,
+} from "axios";
 import { TOKEN_KEY } from "@/utils/auth";
 import { toast } from "react-toastify";
-import { ForbiddenError, UnauthorizedError } from "@/utils/errors";
+import { ForbiddenError } from "@/utils/errors";
 
 export interface HttpServiceConfig {
   baseURL?: string;
@@ -31,33 +38,65 @@ export interface HttpErrorResponse {
   timestamp: string;
   path: string;
 }
-export interface RequestConfig extends RequestInit {
+
+export interface RequestConfig {
   params?: Record<string, string | number | boolean>;
   skipAuth?: boolean;
+  timeout?: number;
+  headers?: Record<string, string>;
+  onUploadProgress?: (progressEvent: AxiosProgressEvent) => void;
 }
 
 export class HttpService {
-  private baseURL: string;
-  private defaultHeaders: Record<string, string>;
-  private timeout: number;
+  private axiosInstance: AxiosInstance;
 
   constructor(config: HttpServiceConfig = {}) {
-    // Use relative paths in browser (for Next.js proxy) or absolute URL in server-side
-    // If baseURL is explicitly provided, use it; otherwise use relative path for proxy
+    // Determine base URL
+    let baseURL: string;
     if (config.baseURL) {
-      this.baseURL = config.baseURL;
+      baseURL = config.baseURL;
     } else if (typeof window !== "undefined") {
       // In browser: use relative paths so Next.js rewrites can proxy
-      this.baseURL = "";
+      baseURL = "";
     } else {
       // Server-side: use full URL
-      this.baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+      baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
     }
-    this.defaultHeaders = {
-      "Content-Type": "application/json",
-      ...config.headers,
-    };
-    this.timeout = config.timeout || 30000; // 30 seconds default
+
+    // Create axios instance
+    this.axiosInstance = axios.create({
+      baseURL,
+      timeout: config.timeout || 30000, // 30 seconds default
+      headers: {
+        "Content-Type": "application/json",
+        ...config.headers,
+      },
+    });
+
+    // Request interceptor - add auth token
+    this.axiosInstance.interceptors.request.use(
+      (axiosConfig: InternalAxiosRequestConfig) => {
+        // Skip auth if specified in metadata
+        const skipAuth = (axiosConfig as InternalAxiosRequestConfig & { skipAuth?: boolean }).skipAuth;
+        if (!skipAuth) {
+          const token = this.getAuthToken();
+          if (token) {
+            axiosConfig.headers.Authorization = `Bearer ${token}`;
+          }
+        }
+
+        return axiosConfig;
+      },
+      (error) => Promise.reject(error)
+    );
+
+    // Response interceptor - handle errors
+    this.axiosInstance.interceptors.response.use(
+      (response) => response,
+      (error: AxiosError<HttpErrorResponse>) => {
+        return this.handleError(error);
+      }
+    );
   }
 
   /**
@@ -85,189 +124,115 @@ export class HttpService {
   }
 
   /**
-   * Build URL with query parameters
+   * Handle axios errors
    */
-  private buildURL(
-    endpoint: string,
-    params?: Record<string, string | number | boolean>
-  ): string {
-    // If baseURL is empty (for proxy), use relative path
-    if (!this.baseURL) {
-      let url = endpoint;
-
-      if (params) {
-        const searchParams = new URLSearchParams();
-        Object.entries(params).forEach(([key, value]) => {
-          searchParams.append(key, String(value));
-        });
-        const queryString = searchParams.toString();
-        url += queryString ? `?${queryString}` : "";
-      }
-
-      return url;
+  private handleError(error: AxiosError<HttpErrorResponse>): never {
+    if (error.code === "ECONNABORTED") {
+      throw new Error("Request timeout");
     }
 
-    // Use absolute URL when baseURL is
-
-    const url = new URL(endpoint, this.baseURL);
-
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        url.searchParams.append(key, String(value));
-      });
+    if (!error.response) {
+      throw new Error("Network error - please check your connection");
     }
 
-    return url.toString();
-  }
+    const { status, data: errorData } = error.response;
+    let errorMessage = `HTTP error! status: ${status}`;
 
-  /**
-   * Build headers for the request
-   */
-  private buildHeaders(config: RequestConfig = {}): Record<string, string> {
-    const headers: Record<string, string> = { ...this.defaultHeaders };
+    if (errorData) {
+      errorMessage = errorData.message || errorData.error || errorMessage;
+    }
 
-    // Add auth token if available and not skipped
-    if (!config.skipAuth) {
-      const token = this.getAuthToken();
-      if (token) {
-        headers.Authorization = `Bearer ${token}`;
+    // Handle specific status codes
+    if (status === 401) {
+      // Unauthorized - clear token and redirect to login
+      this.clearAuthToken();
+      if (typeof window !== "undefined") {
+        window.location.href = "/login";
       }
     }
 
-    // Merge custom headers (only if provided, and not empty object)
-    if (config.headers && Object.keys(config.headers).length > 0) {
-      Object.assign(headers, config.headers);
-    }
-
-    return headers;
-  }
-
-  /**
-   * Handle response and parse JSON
-   */
-  private async handleResponse<T>(response: Response): Promise<T> {
-    const contentType = response.headers.get("content-type");
-    const isJson = contentType?.includes("application/json");
-    let errorData: HttpErrorResponse | null = null;
-    if (!response.ok) {
-      let errorMessage = `HTTP error! status: ${response.status}`;
-
-      if (isJson) {
-        try {
-          errorData = (await response.json()) as HttpErrorResponse;
-          errorMessage = errorData.message || errorData.error || errorMessage;
-        } catch {
-          // If JSON parsing fails, use default error message
+    if (status === 400) {
+      console.log("response", errorData);
+      if (errorData) {
+        const dataMessage = errorData.data?.message;
+        if (Array.isArray(dataMessage)) {
+          dataMessage.forEach((message: string) => {
+            toast.error(message);
+          });
+        } else if (dataMessage) {
+          toast.error(dataMessage);
+        } else {
+          toast.error(errorData.message || "Bad request");
         }
       }
 
-      // Handle specific status codes
-      if (response.status === 401) {
-        // Unauthorized - clear token and redirect to login
-        this.clearAuthToken();
-        if (typeof window !== "undefined") {
-          window.location.href = "/login";
-        }
-      }
-
-      if (response.status === 400) {
-        console.log("response", errorData);
-        if (errorData) {
-          const dataMessage = errorData.data?.message;
-          if (Array.isArray(dataMessage)) {
-            dataMessage.forEach((message: string) => {
-              toast.error(message);
-            });
-          } else if (dataMessage) {
-            toast.error(dataMessage);
-          } else {
-            toast.error(errorData.message || "Bad request");
-          }
-        }
-        // Throw error to prevent further processing
-        throw new Error(errorMessage);
-      }
-
-      if (response.status === 403) {
-        // Forbidden - Permission denied
-        let permissionErrorMessage =
-          "You do not have permission to perform this action";
-
-        if (errorData) {
-          // Extract message from errorData - handle different possible structures
-          const dataMessage = errorData.data?.message;
-          permissionErrorMessage =
-            errorData.message ||
-            (typeof dataMessage === "string"
-              ? dataMessage
-              : Array.isArray(dataMessage)
-              ? dataMessage[0]
-              : undefined) ||
-            permissionErrorMessage;
-        }
-
-        toast.error(permissionErrorMessage, {
-          autoClose: 5000,
-          position: "top-right",
-        });
-
-        // Throw ForbiddenError so pages can detect and show appropriate UI
-        throw new ForbiddenError(permissionErrorMessage);
-      }
+      throw new Error(errorMessage);
     }
 
-    if (isJson) {
-      return await response.json();
-    }
+    if (status === 403) {
+      // Forbidden - Permission denied
+      let permissionErrorMessage =
+        "You do not have permission to perform this action";
 
-    return (await response.text()) as unknown as T;
-  }
+      if (errorData) {
+        const dataMessage = errorData.data?.message;
+        permissionErrorMessage =
+          errorData.message ||
+          (typeof dataMessage === "string"
+            ? dataMessage
+            : Array.isArray(dataMessage)
+            ? dataMessage[0]
+            : undefined) ||
+          permissionErrorMessage;
+      }
 
-  /**
-   * Make a request with timeout
-   */
-  private async request<T>(
-    endpoint: string,
-    config: RequestConfig = {}
-  ): Promise<T> {
-    const url = this.buildURL(endpoint, config.params);
-    // Always build headers and merge with any custom headers from config
-    const headers = this.buildHeaders(config);
-
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), this.timeout);
-
-    try {
-      const response = await fetch(url, {
-        ...config,
-        headers,
-        signal: controller.signal,
+      toast.error(permissionErrorMessage, {
+        autoClose: 5000,
+        position: "top-right",
       });
 
-      clearTimeout(timeoutId);
-      return await this.handleResponse<T>(response);
-    } catch (error) {
-      clearTimeout(timeoutId);
-
-      if (error instanceof Error) {
-        if (error.name === "AbortError") {
-          throw new Error("Request timeout");
-        }
-        throw error;
-      }
-
-      throw new Error("An unexpected error occurred");
+      throw new ForbiddenError(permissionErrorMessage);
     }
+
+    throw new Error(errorMessage);
+  }
+
+  /**
+   * Build axios config from request config
+   */
+  private buildAxiosConfig(config: RequestConfig = {}): AxiosRequestConfig & { skipAuth?: boolean } {
+    const axiosConfig: AxiosRequestConfig & { skipAuth?: boolean } = {};
+
+    if (config.params) {
+      axiosConfig.params = config.params;
+    }
+
+    if (config.timeout) {
+      axiosConfig.timeout = config.timeout;
+    }
+
+    if (config.headers) {
+      axiosConfig.headers = config.headers;
+    }
+
+    if (config.onUploadProgress) {
+      axiosConfig.onUploadProgress = config.onUploadProgress;
+    }
+
+    if (config.skipAuth) {
+      axiosConfig.skipAuth = true;
+    }
+
+    return axiosConfig;
   }
 
   /**
    * GET request
    */
   async get<T>(endpoint: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...config,
-      method: "GET",
-    });
+    const axiosConfig = this.buildAxiosConfig(config);
+    const response = await this.axiosInstance.get<T>(endpoint, axiosConfig);
+    return response.data;
   }
 
   /**
@@ -278,21 +243,18 @@ export class HttpService {
     data?: unknown,
     config?: RequestConfig
   ): Promise<T> {
-    // Check if data is FormData - if so, don't stringify and don't set Content-Type
-    const isFormData = data instanceof FormData;
-    const headers = { ...this.buildHeaders(config) };
+    const axiosConfig = this.buildAxiosConfig(config);
 
-    // Remove Content-Type header for FormData to let browser set it with boundary
-    if (isFormData) {
-      delete headers["Content-Type"];
+    // Handle FormData - let axios set the Content-Type with boundary
+    if (data instanceof FormData) {
+      axiosConfig.headers = {
+        ...axiosConfig.headers,
+        "Content-Type": "multipart/form-data",
+      };
     }
 
-    return this.request<T>(endpoint, {
-      ...config,
-      method: "POST",
-      body: isFormData ? data : data ? JSON.stringify(data) : undefined,
-      headers,
-    });
+    const response = await this.axiosInstance.post<T>(endpoint, data, axiosConfig);
+    return response.data;
   }
 
   /**
@@ -303,11 +265,9 @@ export class HttpService {
     data?: unknown,
     config?: RequestConfig
   ): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...config,
-      method: "PUT",
-      body: data ? JSON.stringify(data) : undefined,
-    });
+    const axiosConfig = this.buildAxiosConfig(config);
+    const response = await this.axiosInstance.put<T>(endpoint, data, axiosConfig);
+    return response.data;
   }
 
   /**
@@ -318,35 +278,32 @@ export class HttpService {
     data?: unknown,
     config?: RequestConfig
   ): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...config,
-      method: "PATCH",
-      body: data ? JSON.stringify(data) : undefined,
-    });
+    const axiosConfig = this.buildAxiosConfig(config);
+    const response = await this.axiosInstance.patch<T>(endpoint, data, axiosConfig);
+    return response.data;
   }
 
   /**
    * DELETE request
    */
   async delete<T>(endpoint: string, config?: RequestConfig): Promise<T> {
-    return this.request<T>(endpoint, {
-      ...config,
-      method: "DELETE",
-    });
+    const axiosConfig = this.buildAxiosConfig(config);
+    const response = await this.axiosInstance.delete<T>(endpoint, axiosConfig);
+    return response.data;
   }
 
   /**
    * Update base URL
    */
   setBaseURL(baseURL: string): void {
-    this.baseURL = baseURL;
+    this.axiosInstance.defaults.baseURL = baseURL;
   }
 
   /**
    * Update default headers
    */
   setDefaultHeaders(headers: Record<string, string>): void {
-    this.defaultHeaders = { ...this.defaultHeaders, ...headers };
+    Object.assign(this.axiosInstance.defaults.headers.common, headers);
   }
 }
 

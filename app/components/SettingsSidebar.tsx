@@ -19,10 +19,17 @@ interface NavItem {
 
 const settingsNavigation: NavItem[] = [
   {
-    id: "users",
-    name: "Users",
+    id: "company-users",
+    name: "Company Users",
     icon: "👥",
     resource: PermissionResource.COMPANY_USER,
+    action: PermissionAction.READ,
+  },
+  {
+    id: "regular-users",
+    name: "Users",
+    icon: "👤",
+    resource: PermissionResource.USER,
     action: PermissionAction.READ,
   },
   {
@@ -42,7 +49,7 @@ const settingsNavigation: NavItem[] = [
   {
     id: "groups",
     name: "Groups",
-    icon: "👤",
+    icon: "🏢",
     resource: PermissionResource.SETTINGS,
     action: PermissionAction.READ,
   },

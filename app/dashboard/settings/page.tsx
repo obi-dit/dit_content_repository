@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import SettingsSidebar from "../../components/SettingsSidebar";
 import Users from "../../components/settings/Users";
+import RegularUsers from "../../components/settings/RegularUsers";
 import Preferences from "../../components/settings/Preferences";
 import Permission from "../../components/settings/RolesPermission";
 import Groups from "../../components/settings/Groups";
@@ -11,28 +12,42 @@ import { usePermissions } from "@/contexts/PermissionContext";
 import { PermissionResource, PermissionAction } from "@/typings/permissions";
 
 export default function SettingsPage() {
-  const [activeSection, setActiveSection] = useState("users");
+  const [activeSection, setActiveSection] = useState("company-users");
   const { hasPermission } = usePermissions();
 
   // Permission checks for each section
-  const canViewUsers = hasPermission(PermissionResource.COMPANY_USER, PermissionAction.READ);
+  const canViewCompanyUsers = hasPermission(PermissionResource.COMPANY_USER, PermissionAction.READ);
+  const canViewRegularUsers = hasPermission(PermissionResource.USER, PermissionAction.READ);
   const canViewRoles = hasPermission(PermissionResource.ROLE, PermissionAction.READ);
   const canViewSettings = hasPermission(PermissionResource.SETTINGS, PermissionAction.READ);
 
   // Set initial active section based on permissions
   useEffect(() => {
-    if (!canViewUsers && canViewSettings) {
+    if (!canViewCompanyUsers && canViewRegularUsers) {
+      setActiveSection("regular-users");
+    } else if (!canViewCompanyUsers && canViewSettings) {
       setActiveSection("preferences");
-    } else if (!canViewUsers && canViewRoles) {
+    } else if (!canViewCompanyUsers && canViewRoles) {
       setActiveSection("roles_permissions");
     }
-  }, [canViewUsers, canViewSettings, canViewRoles]);
+  }, [canViewCompanyUsers, canViewRegularUsers, canViewSettings, canViewRoles]);
 
   const renderSection = () => {
     switch (activeSection) {
-      case "users":
-        return canViewUsers ? (
+      case "company-users":
+        return canViewCompanyUsers ? (
           <Users />
+        ) : (
+          <NotAllowed
+            title="Company Users Access Denied"
+            message="You don't have permission to view company users."
+            showDashboardLink={false}
+            showBackButton={false}
+          />
+        );
+      case "regular-users":
+        return canViewRegularUsers ? (
+          <RegularUsers />
         ) : (
           <NotAllowed
             title="Users Access Denied"
@@ -75,7 +90,7 @@ export default function SettingsPage() {
           />
         );
       default:
-        return canViewUsers ? (
+        return canViewCompanyUsers ? (
           <Users />
         ) : (
           <NotAllowed

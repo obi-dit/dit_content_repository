@@ -150,7 +150,7 @@ export default function EditContentPage() {
     }
 
     // Validate file size (max 100MB)
-    if (file.size > 20 * 1024 * 1024) {
+    if (file.size > 100 * 1024 * 1024) {
       setError("Video size must be less than 100MB");
       return;
     }

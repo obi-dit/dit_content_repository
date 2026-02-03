@@ -89,7 +89,10 @@ export default class ContentService extends HttpService {
     return this.put(`/api/content/${id}`, content);
   }
 
-  async uploadContentImage(image: File): Promise<string> {
+  async uploadContentImage(
+    image: File,
+    onProgress?: (progress: number) => void
+  ): Promise<string> {
     const formData = new FormData();
     formData.append("image", image);
 
@@ -98,14 +101,24 @@ export default class ContentService extends HttpService {
       imageUrl: string;
       publicId: string;
     }>("/api/content/upload/image", formData, {
-      headers: {}, // Let browser set Content-Type with boundary for FormData
       skipAuth: false,
+      onUploadProgress: onProgress
+        ? (event) => {
+            const progress = event.total
+              ? Math.round((event.loaded * 100) / event.total)
+              : 0;
+            onProgress(progress);
+          }
+        : undefined,
     });
 
     return response.imageUrl;
   }
 
-  async uploadContentVideo(video: File): Promise<string> {
+  async uploadContentVideo(
+    video: File,
+    onProgress?: (progress: number) => void
+  ): Promise<string> {
     const formData = new FormData();
     formData.append("video", video);
 
@@ -114,8 +127,16 @@ export default class ContentService extends HttpService {
       videoUrl: string;
       publicId: string;
     }>("/api/content/upload/video", formData, {
-      headers: {}, // Let browser set Content-Type with boundary for FormData
       skipAuth: false,
+      timeout: 5 * 60 * 1000, // 5 minutes for large video uploads
+      onUploadProgress: onProgress
+        ? (event) => {
+            const progress = event.total
+              ? Math.round((event.loaded * 100) / event.total)
+              : 0;
+            onProgress(progress);
+          }
+        : undefined,
     });
 
     return response.videoUrl;
