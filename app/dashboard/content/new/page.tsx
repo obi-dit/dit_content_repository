@@ -206,10 +206,11 @@ export default function NewContentPage() {
         return;
       }
 
-      // Create content with uploaded URLs
+      // Create content with uploaded URLs (type: display label → API slug)
+      const typeSlug = formData.type.toLowerCase().replace(/\s+/g, "_");
       const contentData: Partial<Content> = {
         ...formData,
-        type: formData.type.toLowerCase(),
+        type: typeSlug,
         imageUrl: finalImageUrl || undefined,
         videoUrl: finalVideoUrl || undefined,
       };

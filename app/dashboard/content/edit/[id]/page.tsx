@@ -57,6 +57,19 @@ export default function EditContentPage() {
     "Capstone Project",
   ];
 
+  // Map API slug to dropdown display label
+  const typeSlugToDisplay: Record<string, string> = {
+    article: "Article",
+    documentation: "Documentation",
+    guide: "Guide",
+    tutorial: "Tutorial",
+    video: "Video",
+    podcast: "Podcast",
+    ai_media: "AI Media",
+    capstone_project: "Capstone Project",
+    other: "Article",
+  };
+
   useEffect(() => {
     if (id) {
       fetchContent();
@@ -69,8 +82,7 @@ export default function EditContentPage() {
       setError("");
       const data = await contentService.getContentById(id);
       
-      // Capitalize first letter of type for display
-      const typeDisplay = data.type.charAt(0).toUpperCase() + data.type.slice(1);
+      const typeDisplay = typeSlugToDisplay[data.type] ?? data.type.charAt(0).toUpperCase() + data.type.slice(1);
       
       setFormData({
         title: data.title || "",
@@ -232,10 +244,11 @@ export default function EditContentPage() {
         }
       }
 
-      // Update content with uploaded URLs
+      // Update content with uploaded URLs (type: display label → API slug)
+      const typeSlug = formData.type.toLowerCase().replace(/\s+/g, "_");
       const contentData: Partial<Content> = {
         ...formData,
-        type: formData.type.toLowerCase(),
+        type: typeSlug,
         imageUrl: finalImageUrl || undefined,
         videoUrl: finalVideoUrl || undefined,
       };
