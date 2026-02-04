@@ -147,7 +147,11 @@ export class HttpService {
       // Unauthorized - clear token and redirect to login
       this.clearAuthToken();
       if (typeof window !== "undefined") {
-        window.location.href = "/login";
+        //check if the current path is the login page
+        if (window.location.pathname !== "/login") {
+          window.location.href = "/login";
+        }
+       
       }
     }
 

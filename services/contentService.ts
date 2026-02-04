@@ -37,6 +37,18 @@ export default class ContentService extends HttpService {
   }
 
   /**
+   * Backend URL for direct video uploads (bypasses Next.js proxy to avoid timeout on large files).
+   * Only used in browser so video uploads stream directly to the backend.
+   */
+  private get videoUploadUrl(): string {
+    if (typeof window === "undefined") {
+      return "/api/content/upload/video";
+    }
+    const base = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3000";
+    return `${base}/api/content/upload/video`;
+  }
+
+  /**
    * Get all published content (public - no auth required)
    */
   async getPublishedContent(): Promise<PublicContent[]> {
@@ -126,7 +138,7 @@ export default class ContentService extends HttpService {
       success: boolean;
       videoUrl: string;
       publicId: string;
-    }>("/api/content/upload/video", formData, {
+    }>(this.videoUploadUrl, formData, {
       skipAuth: false,
       timeout: 5 * 60 * 1000, // 5 minutes for large video uploads
       onUploadProgress: onProgress

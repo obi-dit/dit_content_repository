@@ -2,7 +2,9 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Increase body size limit for file uploads (default is 10MB)
+  // 2 minutes
   experimental: {
+    proxyTimeout: 12000,
     serverActions: {
       bodySizeLimit: "110mb",
     },
