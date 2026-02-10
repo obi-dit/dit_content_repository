@@ -6,7 +6,7 @@ const nextConfig: NextConfig = {
   experimental: {
     proxyTimeout: 12000,
     serverActions: {
-      bodySizeLimit: "110mb",
+      bodySizeLimit: "310mb",
     },
     // Increase middleware client body size limit for proxied requests
     middlewareClientMaxBodySize: "110mb",

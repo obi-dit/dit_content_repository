@@ -96,9 +96,9 @@ export default function NewContentPage() {
       return;
     }
 
-    // Validate file size (max 100MB)
-    if (file.size > 100 * 1024 * 1024) {
-      setError("Video size must be less than 100MB");
+    // Validate file size (max 300MB)
+    if (file.size > 300 * 1024 * 1024) {
+      setError("Video size must be less than 300MB");
       return;
     }
 
@@ -459,7 +459,7 @@ export default function NewContentPage() {
               Video
             </label>
             <p className="text-xs text-zinc-500 dark:text-zinc-400 mb-4">
-              Upload a video file or provide a URL (Max size: 100MB)
+              Upload a video file or provide a URL (Max size: 300MB)
             </p>
 
             {videoPreview ? (
@@ -517,7 +517,7 @@ export default function NewContentPage() {
                       Click to upload video
                     </p>
                     <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                      MP4, MOV, AVI up to 100MB
+                      MP4, MOV, AVI up to 300MB
                     </p>
                   </div>
                 </div>
