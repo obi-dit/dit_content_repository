@@ -10,8 +10,6 @@ const nextConfig: NextConfig = {
     },
     // Allow 300MB uploads when request goes through Next.js proxy (rewrites)
     proxyClientMaxBodySize: "310mb",
-    // Allow 300MB when middleware reads body
-    middlewareClientMaxBodySize: "310mb",
   },
 
   // Proxy API requests to the backend server
