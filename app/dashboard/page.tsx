@@ -210,42 +210,31 @@ export default function DashboardPage() {
               Quick Actions
             </h2>
             <div className="grid grid-cols-2 gap-3">
-              <button className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left">
+              <Link href="/dashboard/content/new" className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left">
                 <div className="text-2xl mb-2">📄</div>
-                <div className="font-semibold text-zinc-900 dark:text-zinc-50">
-                  New Article
-                </div>
-                <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Create content
-                </div>
-              </button>
-              <button className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left">
+                <span className="font-semibold text-zinc-900 dark:text-zinc-50">
+                  New Content
+                </span>
+              </Link>
+              <Link href="/dashboard/collections" className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left">
                 <div className="text-2xl mb-2">📁</div>
-                <div className="font-semibold text-zinc-900 dark:text-zinc-50">
-                  New Collection
-                </div>
-                <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Organize content
-                </div>
-              </button>
-              <button className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left">
+                <span className="font-semibold text-zinc-900 dark:text-zinc-50">
+                  View Collection
+                </span>
+                
+              </Link>
+              <Link href="/dashboard/analytics" className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left">
                 <div className="text-2xl mb-2">📊</div>
-                <div className="font-semibold text-zinc-900 dark:text-zinc-50">
+                <span className="font-semibold text-zinc-900 dark:text-zinc-50">
                   View Analytics
-                </div>
-                <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                  See insights
-                </div>
-              </button>
-              <button className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left">
+                </span>
+              </Link>
+              <Link href="/dashboard/settings" className="p-4 rounded-lg border border-zinc-200 dark:border-zinc-700 hover:bg-zinc-50 dark:hover:bg-zinc-700 transition-colors text-left">
                 <div className="text-2xl mb-2">⚙️</div>
-                <div className="font-semibold text-zinc-900 dark:text-zinc-50">
+                <span className="font-semibold text-zinc-900 dark:text-zinc-50">
                   Settings
-                </div>
-                <div className="text-sm text-zinc-500 dark:text-zinc-400">
-                  Configure
-                </div>
-              </button>
+                </span>
+              </Link>
             </div>
           </div>
 

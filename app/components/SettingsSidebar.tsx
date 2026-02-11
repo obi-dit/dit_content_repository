@@ -46,13 +46,6 @@ const settingsNavigation: NavItem[] = [
     resource: PermissionResource.ROLE,
     action: PermissionAction.READ,
   },
-  {
-    id: "groups",
-    name: "Groups",
-    icon: "🏢",
-    resource: PermissionResource.SETTINGS,
-    action: PermissionAction.READ,
-  },
 ];
 
 export default function SettingsSidebar({

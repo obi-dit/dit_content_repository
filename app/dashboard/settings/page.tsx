@@ -78,17 +78,7 @@ export default function SettingsPage() {
             showBackButton={false}
           />
         );
-      case "groups":
-        return canViewSettings ? (
-          <Groups />
-        ) : (
-          <NotAllowed
-            title="Groups Access Denied"
-            message="You don't have permission to view groups."
-            showDashboardLink={false}
-            showBackButton={false}
-          />
-        );
+     
       default:
         return canViewCompanyUsers ? (
           <Users />
