@@ -87,22 +87,32 @@ export default function EditUserPage() {
       setRoles(rolesData);
       setPermissions(permissionsData);
 
-      // Find and set the user's current role
-      // Try to match by role name (case-insensitive)
       const roleName = userData.role || "viewer";
-      const currentRole = rolesData.find(
-        (r) => r.name.toLowerCase() === roleName.toLowerCase()
-      );
+      const currentRole = userData.roleId
+        ? rolesData.find((r) => r._id === userData.roleId)
+        : rolesData.find((r) => r.name.toLowerCase() === roleName.toLowerCase());
+
+      let rolePermIds: string[] = [];
+      if (currentRole?.permissions && Array.isArray(currentRole.permissions)) {
+        rolePermIds = currentRole.permissions.map((p) =>
+          typeof p === "string" ? p : p._id || p.toString()
+        );
+      }
+
+      const additional = userData.additionalPermissionIds || [];
+      const revoked = userData.revokedPermissionIds || [];
+      const effective = new Set<string>();
+      for (const pid of rolePermIds) {
+        if (!revoked.includes(pid)) effective.add(pid);
+      }
+      for (const pid of additional) {
+        effective.add(pid);
+      }
+
       if (currentRole) {
         setSelectedRoleId(currentRole._id);
-        // If role has populated permissions, extract IDs
-        if (currentRole.permissions && Array.isArray(currentRole.permissions)) {
-          const permIds = currentRole.permissions.map((p) =>
-            typeof p === "string" ? p : p._id || p.toString()
-          );
-          setSelectedPermissionIds(permIds);
-        }
       }
+      setSelectedPermissionIds([...effective]);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to load user data");
       console.error("Error loading user data:", err);
@@ -124,10 +134,8 @@ export default function EditUserPage() {
         lastName,
         email,
         roleId: selectedRoleId || undefined,
+        permissionIds: selectedPermissionIds,
       });
-
-      // TODO: If you want to support individual permission assignment beyond roles,
-      // you would need to add that functionality to the API
 
       router.push("/dashboard/settings");
     } catch (err) {
@@ -160,16 +168,14 @@ export default function EditUserPage() {
     );
   };
 
-  // Group permissions by resource
   const groupedPermissions = permissions.reduce((acc, perm) => {
-    if (!acc[perm.resource]) {
-      acc[perm.resource] = [];
-    }
-    acc[perm.resource].push(perm);
+    const key = perm.resource;
+    if (!acc[key]) acc[key] = [];
+    acc[key].push(perm);
     return acc;
-  }, {} as Record<Permission["resource"], Permission[]>);
+  }, {} as Record<string, Permission[]>);
 
-  const resourceLabels: Record<Permission["resource"], string> = {
+  const resourceLabels: Record<string, string> = {
     content: "Content",
     user: "Users",
     company_user: "Company Users",
@@ -178,6 +184,9 @@ export default function EditUserPage() {
     role: "Roles",
     analytics: "Analytics",
     settings: "Settings",
+    transaction: "Transactions",
+    user_payment: "User payments",
+    announcement: "Announcements",
   };
 
   const actionLabels: Record<Permission["action"], string> = {
@@ -188,8 +197,8 @@ export default function EditUserPage() {
     manage: "Manage",
   };
 
-  const getResourceIcon = (resource: Permission["resource"]): string => {
-    const icons: Record<Permission["resource"], string> = {
+  const getResourceIcon = (resource: string): string => {
+    const icons: Record<string, string> = {
       content: "📄",
       user: "👥",
       company_user: "👤",
@@ -198,6 +207,9 @@ export default function EditUserPage() {
       role: "🎭",
       analytics: "📈",
       settings: "⚙️",
+      transaction: "💳",
+      user_payment: "💰",
+      announcement: "📣",
     };
     return icons[resource] || "📋";
   };
@@ -443,12 +455,8 @@ export default function EditUserPage() {
                 {Object.entries(groupedPermissions).map(([resource, perms]) => (
                   <div key={resource}>
                     <h4 className="text-sm font-semibold text-zinc-700 dark:text-zinc-300 mb-3 flex items-center gap-2">
-                      <span>
-                        {getResourceIcon(resource as Permission["resource"])}
-                      </span>
-                      <span>
-                        {resourceLabels[resource as Permission["resource"]]}
-                      </span>
+                      <span>{getResourceIcon(resource)}</span>
+                      <span>{resourceLabels[resource] ?? resource}</span>
                     </h4>
                     <div className="space-y-2">
                       {perms.map((permission) => {
@@ -465,7 +473,8 @@ export default function EditUserPage() {
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="font-medium text-zinc-900 dark:text-zinc-50">
                                   {actionLabels[permission.action]}{" "}
-                                  {resourceLabels[permission.resource]}
+                                  {resourceLabels[permission.resource] ??
+                                    permission.resource}
                                 </span>
                                 {isEnabled && (
                                   <span className="text-xs px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300">

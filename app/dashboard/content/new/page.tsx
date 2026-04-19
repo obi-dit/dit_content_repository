@@ -16,6 +16,7 @@ export default function NewContentPage() {
     content: string;
     imageUrl: string;
     videoUrl: string;
+    isLive: boolean;
   }>({
     title: "",
     type: "Article",
@@ -24,6 +25,7 @@ export default function NewContentPage() {
     content: "",
     imageUrl: "",
     videoUrl: "",
+    isLive: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
@@ -52,10 +54,11 @@ export default function NewContentPage() {
     >
   ) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+      ...(name === "type" && value !== "Podcast" ? { isLive: false } : {}),
+    }));
     setError("");
   };
 
@@ -213,6 +216,7 @@ export default function NewContentPage() {
         type: typeSlug,
         imageUrl: finalImageUrl || undefined,
         videoUrl: finalVideoUrl || undefined,
+        isLive: formData.type === "Podcast" ? formData.isLive : false,
       };
 
       await contentService.createContent(contentData);
@@ -335,6 +339,43 @@ export default function NewContentPage() {
               </select>
             </div>
           </div>
+
+          {/* Live podcast (Podcast type only) */}
+          {formData.type === "Podcast" && (
+            <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-6 border-l-4 border-l-rose-500 dark:border-l-rose-400">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                    Live podcast
+                  </h2>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Turn this on while the episode is streaming live. Subscriber
+                    experiences can use this to highlight the current live show.
+                  </p>
+                </div>
+                <div className="mt-3 flex items-center gap-3 sm:mt-0 sm:shrink-0">
+                  <input
+                    id="is-live-podcast"
+                    type="checkbox"
+                    checked={formData.isLive}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        isLive: e.target.checked,
+                      }))
+                    }
+                    className="h-4 w-4 rounded border-zinc-300 text-rose-600 focus:ring-rose-500 dark:border-zinc-600 dark:bg-zinc-900"
+                  />
+                  <label
+                    htmlFor="is-live-podcast"
+                    className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Live now
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Description */}
           <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-6">

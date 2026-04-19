@@ -15,6 +15,10 @@ export interface CompanyUserProfile {
   date_created: string;
   role: string;
   userType?: string;
+  roleId?: string;
+  roleName?: string;
+  additionalPermissionIds?: string[];
+  revokedPermissionIds?: string[];
 }
 
 export interface UpdateCompanyUserDto {
@@ -22,6 +26,7 @@ export interface UpdateCompanyUserDto {
   lastName?: string;
   email?: string;
   roleId?: string;
+  permissionIds?: string[];
 }
 
 // Regular User interfaces

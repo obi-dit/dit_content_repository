@@ -10,6 +10,7 @@ export interface Content {
   status: "published" | "draft" | "archived";
   imageUrl?: string;
   videoUrl?: string;
+  isLive?: boolean;
 }
 
 export interface PublicContent {

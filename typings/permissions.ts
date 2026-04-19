@@ -16,6 +16,7 @@ export enum PermissionResource {
   ROLE = "role",
   ANALYTICS = "analytics",
   SETTINGS = "settings",
+  ANNOUNCEMENT = "announcement",
 }
 
 export interface UserPermission {
@@ -33,6 +34,10 @@ export const NAVIGATION_PERMISSIONS: Record<
   "/dashboard/content": { resource: PermissionResource.CONTENT, action: PermissionAction.READ },
   "/dashboard/collections": { resource: PermissionResource.CONTENT, action: PermissionAction.READ },
   "/dashboard/analytics": { resource: PermissionResource.ANALYTICS, action: PermissionAction.READ },
+  "/dashboard/announcements": {
+    resource: PermissionResource.ANNOUNCEMENT,
+    action: PermissionAction.READ,
+  },
   "/dashboard/settings": { resource: PermissionResource.SETTINGS, action: PermissionAction.READ },
   "/dashboard/settings/users": { resource: PermissionResource.COMPANY_USER, action: PermissionAction.READ },
   "/dashboard/settings/roles": { resource: PermissionResource.ROLE, action: PermissionAction.READ },
@@ -62,4 +67,20 @@ export function parsePermissionName(name: string): {
     };
   }
   return null;
+}
+
+/** Any announcement permission allows opening /dashboard/announcements (CRUD UI). */
+export function canAccessAnnouncementsDashboard(
+  hasPermission: (
+    resource: PermissionResource,
+    action: PermissionAction
+  ) => boolean
+): boolean {
+  const resource = PermissionResource.ANNOUNCEMENT;
+  return (
+    hasPermission(resource, PermissionAction.READ) ||
+    hasPermission(resource, PermissionAction.CREATE) ||
+    hasPermission(resource, PermissionAction.UPDATE) ||
+    hasPermission(resource, PermissionAction.DELETE)
+  );
 }

@@ -18,6 +18,9 @@ const resourceLabels: Record<Permission["resource"], string> = {
   role: "Roles",
   analytics: "Analytics",
   settings: "Settings",
+  transaction: "Transactions",
+  user_payment: "User payments",
+  announcement: "Announcements",
 };
 
 const actionLabels: Record<Permission["action"], string> = {
@@ -38,6 +41,9 @@ const getResourceIcon = (resource: Permission["resource"]): string => {
     role: "🎭",
     analytics: "📈",
     settings: "⚙️",
+    transaction: "💳",
+    user_payment: "💰",
+    announcement: "📣",
   };
   return icons[resource] || "📋";
 };

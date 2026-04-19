@@ -12,6 +12,7 @@ import {
   PermissionResource,
   PermissionAction,
   NAVIGATION_PERMISSIONS,
+  canAccessAnnouncementsDashboard,
 } from "@/typings/permissions";
 import NotAllowed from "../components/NotAllowed";
 
@@ -53,6 +54,13 @@ const navigationItems: NavItem[] = [
     action: PermissionAction.READ,
   },
   {
+    name: "Announcements",
+    href: "/dashboard/announcements",
+    icon: "📣",
+    resource: PermissionResource.ANNOUNCEMENT,
+    action: PermissionAction.READ,
+  },
+  {
     name: "Settings",
     href: "/dashboard/settings",
     icon: "⚙️",
@@ -81,16 +89,19 @@ export default function DashboardLayout({
     }
 
     // Company users see items based on their permissions
-    return navigationItems.filter((item) =>
-      hasPermission(item.resource, item.action)
-    );
+    return navigationItems.filter((item) => {
+      if (item.href === "/dashboard/announcements") {
+        return canAccessAnnouncementsDashboard(hasPermission);
+      }
+      return hasPermission(item.resource, item.action);
+    });
   }, [hasPermission, user?.userType]);
 
   // Check if user has access to current page
   const currentPagePermission = useMemo(() => {
     // Find the most specific matching route
     const sortedRoutes = Object.keys(NAVIGATION_PERMISSIONS).sort(
-      (a, b) => b.length - a.length
+      (a, b) => b.length - a.length,
     );
 
     for (const route of sortedRoutes) {
@@ -112,11 +123,18 @@ export default function DashboardLayout({
       return true;
     }
 
+    if (
+      pathname === "/dashboard/announcements" ||
+      pathname.startsWith("/dashboard/announcements/")
+    ) {
+      return canAccessAnnouncementsDashboard(hasPermission);
+    }
+
     return hasPermission(
       currentPagePermission.resource,
-      currentPagePermission.action
+      currentPagePermission.action,
     );
-  }, [currentPagePermission, hasPermission, user?.userType]);
+  }, [currentPagePermission, hasPermission, pathname, user?.userType]);
 
   const handleLogout = () => {
     logout();

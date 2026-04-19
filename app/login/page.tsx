@@ -66,9 +66,11 @@ export default function LoginPage() {
         localStorage.removeItem("rememberedEmail");
       }
 
-      // Redirect to dashboard after successful login
+      // Redirect after successful login
       if (response.data.userType === UserType.COMPANY_USER) {
         router.push("/dashboard");
+      } else if (response.data.userType === UserType.SUBSCRIBER) {
+        router.push("/subscriber-dashboard");
       } else {
         router.push("/content");
       }

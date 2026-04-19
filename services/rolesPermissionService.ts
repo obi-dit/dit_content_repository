@@ -13,7 +13,10 @@ export interface Permission {
     | "permission"
     | "role"
     | "analytics"
-    | "settings";
+    | "settings"
+    | "transaction"
+    | "user_payment"
+    | "announcement";
   isActive: boolean;
 }
 

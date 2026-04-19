@@ -12,6 +12,7 @@ export enum Role {
 export enum UserType {
   ADMIN = "admin",
   USER = "user",
+  SUBSCRIBER = "subscriber",
   COMPANY_USER = "company_user",
 }
 export interface User {
