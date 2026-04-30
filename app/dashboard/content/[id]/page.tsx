@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { contentService } from "@/services/contentService";
+import { toVideoEmbedUrl } from "@/utils/video";
 
 interface ContentDetails {
   _id: string;
@@ -40,8 +41,8 @@ export default function ViewContentPage() {
       setError(null);
       const data = await contentService.getContentById(id);
       setContent(data as ContentDetails);
-    } catch (err: any) {
-      setError(err.message || "Failed to load content");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load content");
       console.error("Error fetching content:", err);
     } finally {
       setLoading(false);
@@ -129,6 +130,8 @@ export default function ViewContentPage() {
       </div>
     );
   }
+
+  const videoEmbedUrl = toVideoEmbedUrl(content.videoUrl);
 
   return (
     <div className="flex-1 overflow-y-auto">
@@ -221,14 +224,26 @@ export default function ViewContentPage() {
               <h2 className="text-xl font-bold text-zinc-900 dark:text-zinc-50 mb-3">
                 Video
               </h2>
-              <div className="rounded-lg overflow-hidden">
-                <video
-                  src={content.videoUrl}
-                  controls
-                  className="w-full h-auto max-h-96"
-                >
-                  Your browser does not support the video tag.
-                </video>
+              <div className="rounded-lg overflow-hidden bg-black">
+                {videoEmbedUrl ? (
+                  <div className="aspect-video w-full">
+                    <iframe
+                      title={content.title}
+                      src={videoEmbedUrl}
+                      className="h-full w-full"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  </div>
+                ) : (
+                  <video
+                    src={content.videoUrl}
+                    controls
+                    className="w-full h-auto max-h-96"
+                  >
+                    Your browser does not support the video tag.
+                  </video>
+                )}
               </div>
             </div>
           )}

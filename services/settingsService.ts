@@ -47,6 +47,30 @@ export interface RegularUser {
   updatedAt: string;
 }
 
+export type AgeVerificationStatus =
+  | "not_required"
+  | "pending"
+  | "approved"
+  | "declined";
+
+export interface SubscriberUser {
+  _id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  userType: string;
+  isActive: boolean;
+  /** True when the user has at least one non-cancelled lounge payment record */
+  hasPaid?: boolean;
+  dateOfBirth?: string;
+  driversLicenseUrl?: string;
+  ageVerificationStatus: AgeVerificationStatus;
+  ageVerificationDeclineReason?: string;
+  ageVerificationReviewedAt?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface UpdateRegularUserDto {
   firstName?: string;
   lastName?: string;
@@ -98,6 +122,25 @@ export class SettingsService extends HttpService {
 
   async deleteRegularUser(id: string) {
     return this.delete(`/api/users/${id}`);
+  }
+
+  async getSubscribers() {
+    return this.get<{ subscribers: SubscriberUser[]; count: number }>(
+      "/api/users/subscribers"
+    );
+  }
+
+  async updateSubscriberAgeVerification(
+    id: string,
+    data: {
+      status: Extract<AgeVerificationStatus, "approved" | "declined">;
+      declineReason?: string;
+    }
+  ) {
+    return this.patch<{ subscriber: SubscriberUser }>(
+      `/api/users/subscribers/${id}/age-verification`,
+      data
+    );
   }
 }
 

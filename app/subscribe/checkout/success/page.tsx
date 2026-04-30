@@ -13,23 +13,22 @@ export default function SubscribeCheckoutSuccessPage() {
           <div className="mb-4 text-4xl" aria-hidden>
             ✓
           </div>
-          <h1 className="text-2xl font-bold text-zinc-50">Payment successful</h1>
+          <h1 className="text-2xl font-bold text-zinc-50">
+            Payment successful
+          </h1>
           <p className="mt-3 text-zinc-400">
-            Your subscription is active. Sign in with the email and password you created to open
-            your subscriber dashboard.
+            Your payment was received. An admin will review your driver license
+            for age verification before dashboard access is enabled.
           </p>
           <Link
-            href="/login"
-            className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-gradient-to-r from-amber-500 to-orange-600 py-3 font-semibold text-white transition hover:from-amber-600 hover:to-orange-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
+            href="/subscribe/login"
+            className="mt-8 inline-flex w-full items-center justify-center rounded-xl bg-linear-to-r from-amber-500 to-orange-600 py-3 font-semibold text-white transition hover:from-amber-600 hover:to-orange-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
             Sign in
           </Link>
-          <Link
-            href="/subscriber-dashboard"
-            className="mt-3 block text-sm text-amber-400/90 hover:text-amber-300"
-          >
-            Go to dashboard (after signing in)
-          </Link>
+          <p className="mt-3 text-xs text-zinc-500">
+            If your verification is pending, the dashboard will unlock after approval.
+          </p>
         </div>
       </main>
       <SubscribeFooter />

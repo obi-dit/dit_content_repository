@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { contentService, PublicContentDetail } from "@/services/contentService";
+import { toVideoEmbedUrl } from "@/utils/video";
 
 interface ContentDetail {
   id: string;
@@ -72,7 +73,7 @@ export default function ContentDetailPage() {
           imageUrl: data.imageUrl,
           videoUrl: data.videoUrl,
         });
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Failed to fetch content:", err);
         setError("Content not found or not available.");
       } finally {
@@ -149,6 +150,8 @@ export default function ContentDetailPage() {
     );
   }
 
+  const videoEmbedUrl = toVideoEmbedUrl(content.videoUrl);
+
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       {/* Header */}
@@ -205,14 +208,26 @@ export default function ContentDetailPage() {
           {/* Video Section (if video content) */}
           {content.videoUrl && (
             <div className="p-6 border-b border-zinc-200 dark:border-zinc-700">
-              <video
-                src={content.videoUrl}
-                controls
-                className="w-full rounded-lg"
-                poster={content.imageUrl}
-              >
-                Your browser does not support the video tag.
-              </video>
+              {videoEmbedUrl ? (
+                <div className="aspect-video overflow-hidden rounded-lg bg-black">
+                  <iframe
+                    title={content.title}
+                    src={videoEmbedUrl}
+                    className="h-full w-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
+                </div>
+              ) : (
+                <video
+                  src={content.videoUrl}
+                  controls
+                  className="w-full rounded-lg"
+                  poster={content.imageUrl}
+                >
+                  Your browser does not support the video tag.
+                </video>
+              )}
             </div>
           )}
 

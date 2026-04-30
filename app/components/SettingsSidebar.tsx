@@ -33,6 +33,13 @@ const settingsNavigation: NavItem[] = [
     action: PermissionAction.READ,
   },
   {
+    id: "subscriber-verification",
+    name: "Subscribers",
+    icon: "🪪",
+    resource: PermissionResource.USER,
+    action: PermissionAction.READ,
+  },
+  {
     id: "preferences",
     name: "Preferences",
     icon: "⚙️",

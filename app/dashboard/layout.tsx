@@ -227,7 +227,9 @@ export default function DashboardLayout({
                   {user?.firstName} {user?.lastName}
                 </p>
                 <p className="text-xs text-zinc-500 dark:text-zinc-400">
-                  {user?.email}
+                  {user?.email && user?.email.length > 20
+                    ? user?.email.slice(0, 20) + "..."
+                    : user?.email}
                 </p>
               </div>
             )}

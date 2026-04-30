@@ -4,22 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { contentService, Content } from "@/services/contentService";
-import { getUser } from "@/utils/auth";
-
-interface ContentDetails {
-  _id: string;
-  title: string;
-  description: string;
-  content: string;
-  type: string;
-  status: "published" | "draft" | "archived";
-  views: number;
-  imageUrl?: string;
-  videoUrl?: string;
-  createdAt: string;
-  updatedAt: string;
-  userId: string;
-}
 
 export default function EditContentPage() {
   const router = useRouter();
@@ -33,6 +17,7 @@ export default function EditContentPage() {
     content: "",
     imageUrl: "",
     videoUrl: "",
+    isLive: false,
   });
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingContent, setIsLoadingContent] = useState(true);
@@ -92,6 +77,7 @@ export default function EditContentPage() {
         content: data.content || "",
         imageUrl: data.imageUrl || "",
         videoUrl: data.videoUrl || "",
+        isLive: data.type === "podcast" ? !!data.isLive : false,
       });
       
       if (data.imageUrl) {
@@ -103,8 +89,8 @@ export default function EditContentPage() {
         setOriginalVideoUrl(data.videoUrl);
         setVideoPreview(data.videoUrl);
       }
-    } catch (err: any) {
-      setError(err.message || "Failed to load content");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to load content");
       console.error("Error fetching content:", err);
     } finally {
       setIsLoadingContent(false);
@@ -117,10 +103,11 @@ export default function EditContentPage() {
     >
   ) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+      ...(name === "type" && value !== "Podcast" ? { isLive: false } : {}),
+    }));
     setError("");
   };
 
@@ -189,8 +176,9 @@ export default function EditContentPage() {
 
   const handleRemoveVideo = () => {
     setSelectedVideo(null);
-    setVideoPreview(originalVideoUrl);
-    setFormData({ ...formData, videoUrl: "" });
+    setVideoPreview(null);
+    setOriginalVideoUrl(null);
+    setFormData((prev) => ({ ...prev, videoUrl: "" }));
     if (videoInputRef.current) {
       videoInputRef.current.value = "";
     }
@@ -225,7 +213,7 @@ export default function EditContentPage() {
           finalImageUrl = await contentService.uploadContentImage(
             selectedImage
           );
-        } catch (err) {
+        } catch {
           setError("Failed to upload image. Please try again.");
           setIsLoading(false);
           return;
@@ -237,7 +225,7 @@ export default function EditContentPage() {
           finalVideoUrl = await contentService.uploadContentVideo(
             selectedVideo
           );
-        } catch (err) {
+        } catch {
           setError("Failed to upload video. Please try again.");
           setIsLoading(false);
           return;
@@ -250,13 +238,14 @@ export default function EditContentPage() {
         ...formData,
         type: typeSlug,
         imageUrl: finalImageUrl || undefined,
-        videoUrl: finalVideoUrl || undefined,
+        videoUrl: finalVideoUrl,
+        isLive: formData.type === "Podcast" ? formData.isLive : false,
       };
 
       await contentService.updateContent(id, contentData);
       router.push(`/dashboard/content/${id}`);
-    } catch (err: any) {
-      setError(err.message || "An error occurred. Please try again.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "An error occurred. Please try again.");
       setIsLoading(false);
     }
   };
@@ -387,6 +376,43 @@ export default function EditContentPage() {
             </div>
           </div>
 
+          {/* Live podcast (Podcast type only) */}
+          {formData.type === "Podcast" && (
+            <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-6 border-l-4 border-l-rose-500 dark:border-l-rose-400">
+              <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                <div>
+                  <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
+                    Live podcast
+                  </h2>
+                  <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+                    Turn this on while the episode is streaming live. Subscriber
+                    experiences can use this to highlight the current live show.
+                  </p>
+                </div>
+                <div className="mt-3 flex items-center gap-3 sm:mt-0 sm:shrink-0">
+                  <input
+                    id="is-live-podcast"
+                    type="checkbox"
+                    checked={formData.isLive}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        isLive: e.target.checked,
+                      }))
+                    }
+                    className="h-4 w-4 rounded border-zinc-300 text-rose-600 focus:ring-rose-500 dark:border-zinc-600 dark:bg-zinc-900"
+                  />
+                  <label
+                    htmlFor="is-live-podcast"
+                    className="cursor-pointer text-sm font-medium text-zinc-700 dark:text-zinc-300"
+                  >
+                    Live now
+                  </label>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Description */}
           <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-6">
             <label
@@ -474,14 +500,6 @@ export default function EditContentPage() {
                     </p>
                   </div>
                 </div>
-                <input
-                  ref={imageInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleImageChange}
-                  className="hidden"
-                  aria-label="Upload image file"
-                />
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-zinc-300 dark:border-zinc-700"></div>
@@ -502,6 +520,14 @@ export default function EditContentPage() {
                 />
               </div>
             )}
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+              aria-label="Upload image file"
+            />
           </div>
 
           {/* Video Upload */}
@@ -572,14 +598,6 @@ export default function EditContentPage() {
                     </p>
                   </div>
                 </div>
-                <input
-                  ref={videoInputRef}
-                  type="file"
-                  accept="video/*"
-                  onChange={handleVideoChange}
-                  className="hidden"
-                  aria-label="Upload video file"
-                />
                 <div className="relative">
                   <div className="absolute inset-0 flex items-center">
                     <div className="w-full border-t border-zinc-300 dark:border-zinc-700"></div>
@@ -600,6 +618,14 @@ export default function EditContentPage() {
                 />
               </div>
             )}
+            <input
+              ref={videoInputRef}
+              type="file"
+              accept="video/*"
+              onChange={handleVideoChange}
+              className="hidden"
+              aria-label="Upload video file"
+            />
           </div>
 
           {/* Content */}

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import SettingsSidebar from "../../components/SettingsSidebar";
 import Users from "../../components/settings/Users";
 import RegularUsers from "../../components/settings/RegularUsers";
+import SubscriberAgeVerification from "../../components/settings/SubscriberAgeVerification";
 import Preferences from "../../components/settings/Preferences";
 import Permission from "../../components/settings/RolesPermission";
 import Groups from "../../components/settings/Groups";
@@ -52,6 +53,17 @@ export default function SettingsPage() {
           <NotAllowed
             title="Users Access Denied"
             message="You don't have permission to view users."
+            showDashboardLink={false}
+            showBackButton={false}
+          />
+        );
+      case "subscriber-verification":
+        return canViewRegularUsers ? (
+          <SubscriberAgeVerification />
+        ) : (
+          <NotAllowed
+            title="Subscribers Access Denied"
+            message="You don't have permission to review subscriber verification."
             showDashboardLink={false}
             showBackButton={false}
           />
