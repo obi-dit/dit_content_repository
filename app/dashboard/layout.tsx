@@ -61,6 +61,13 @@ const navigationItems: NavItem[] = [
     action: PermissionAction.READ,
   },
   {
+    name: "Questions",
+    href: "/dashboard/questions",
+    icon: "❓",
+    resource: PermissionResource.CONTENT,
+    action: PermissionAction.READ,
+  },
+  {
     name: "Settings",
     href: "/dashboard/settings",
     icon: "⚙️",

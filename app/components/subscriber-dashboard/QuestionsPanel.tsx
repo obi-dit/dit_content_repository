@@ -1,10 +1,13 @@
 "use client";
 
-import { useId, useState, type FormEvent } from "react";
+import { useEffect, useId, useState, type FormEvent } from "react";
 import type { SubscriberQuestion } from "@/typings/subscriber-dashboard";
+import { questionService } from "@/services/questionService";
 
 interface QuestionsPanelProps {
   initialQuestions: SubscriberQuestion[];
+  livePodcastId?: string;
+  livePodcastTitle?: string;
 }
 
 function statusLabel(status: SubscriberQuestion["status"]) {
@@ -20,30 +23,48 @@ function statusLabel(status: SubscriberQuestion["status"]) {
 
 export default function QuestionsPanel({
   initialQuestions,
+  livePodcastId,
+  livePodcastTitle,
 }: QuestionsPanelProps) {
   const formId = useId();
   const [questions, setQuestions] =
     useState<SubscriberQuestion[]>(initialQuestions);
   const [draft, setDraft] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  useEffect(() => {
+    setQuestions(initialQuestions);
+  }, [initialQuestions]);
+
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     const text = draft.trim();
-    if (!text || submitting) {
+    if (!text || submitting || !livePodcastId) {
       return;
     }
     setSubmitting(true);
-    const newQ: SubscriberQuestion = {
-      id: `local-${Date.now()}`,
-      text,
-      status: "pending",
-      submittedAt: new Date().toISOString(),
-    };
-    setQuestions((prev) => [newQ, ...prev]);
-    setDraft("");
-    setSubmitting(false);
+    setError("");
+    setMessage("");
+    try {
+      const newQuestion = await questionService.createQuestion({
+        question: text,
+        podcastId: livePodcastId,
+      });
+      setQuestions((prev) => [newQuestion, ...prev]);
+      setDraft("");
+      setMessage("Question sent to the hosts.");
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Could not submit your question",
+      );
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  const canSubmit = !!livePodcastId && !!draft.trim() && !submitting;
 
   return (
     <section
@@ -58,8 +79,9 @@ export default function QuestionsPanel({
         Your questions
       </h2>
       <p className="mt-1 text-sm text-zinc-500">
-        Submit a question for upcoming live sessions. You&apos;ll see status
-        here when hosts address it.
+        {livePodcastTitle
+          ? `Submit a question for ${livePodcastTitle}. You'll see status here when hosts address it.`
+          : "Questions open when a podcast is live."}
       </p>
 
       <form onSubmit={handleSubmit} className="mt-4 space-y-3">
@@ -72,19 +94,32 @@ export default function QuestionsPanel({
           onChange={(e) => setDraft(e.target.value)}
           rows={3}
           maxLength={500}
-          placeholder="What would you like to ask on the next live show?"
+          disabled={!livePodcastId || submitting}
+          placeholder={
+            livePodcastId
+              ? "What would you like to ask on the live show?"
+              : "No podcast is live right now"
+          }
           className="w-full resize-y rounded-xl border border-zinc-700 bg-zinc-950/80 px-3 py-2.5 text-sm text-zinc-100 placeholder:text-zinc-600 focus:border-amber-600/50 focus:outline-none focus:ring-2 focus:ring-amber-500/25"
         />
+        {(message || error) && (
+          <p
+            className={`text-xs ${error ? "text-red-400" : "text-green-400"}`}
+            aria-live="polite"
+          >
+            {error || message}
+          </p>
+        )}
         <div className="flex items-center justify-between gap-2">
           <span className="text-xs text-zinc-600" aria-live="polite">
             {draft.length}/500
           </span>
           <button
             type="submit"
-            disabled={!draft.trim() || submitting}
+            disabled={!canSubmit}
             className="rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-4 py-2 text-sm font-semibold text-white transition enabled:hover:from-amber-600 enabled:hover:to-orange-700 disabled:cursor-not-allowed disabled:opacity-40 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400"
           >
-            Submit question
+            {submitting ? "Submitting..." : "Submit question"}
           </button>
         </div>
       </form>

@@ -38,6 +38,7 @@ export const NAVIGATION_PERMISSIONS: Record<
     resource: PermissionResource.ANNOUNCEMENT,
     action: PermissionAction.READ,
   },
+  "/dashboard/questions": { resource: PermissionResource.CONTENT, action: PermissionAction.READ },
   "/dashboard/settings": { resource: PermissionResource.SETTINGS, action: PermissionAction.READ },
   "/dashboard/settings/users": { resource: PermissionResource.COMPANY_USER, action: PermissionAction.READ },
   "/dashboard/settings/roles": { resource: PermissionResource.ROLE, action: PermissionAction.READ },

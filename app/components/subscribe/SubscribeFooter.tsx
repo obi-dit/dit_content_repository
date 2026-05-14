@@ -3,8 +3,8 @@
 export default function SubscribeFooter() {
   return (
     <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-zinc-950 text-zinc-400">
-      <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-8">
+      <div className="max-w-7xl mx-auto ">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 mb-8">
           <div className="sm:col-span-2 lg:col-span-1">
             <h3 className="text-white font-bold text-lg mb-4">
               DIT Podcast Lounge
@@ -15,7 +15,7 @@ export default function SubscribeFooter() {
             </p>
           </div>
 
-          <div>
+          {/* <div>
             <h3 className="text-white font-bold text-lg mb-4">Shows</h3>
             <ul className="space-y-2 text-sm">
               <li>
@@ -51,7 +51,7 @@ export default function SubscribeFooter() {
                 </a>
               </li>
             </ul>
-          </div>
+          </div> */}
 
           <div>
             <h3 className="text-white font-bold text-lg mb-4">Subscribe</h3>

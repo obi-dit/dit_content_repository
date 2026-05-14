@@ -7,8 +7,8 @@ import { User } from "@/typings/auth";
 const DESKTOP_LINKS = [
   { href: "/subscriber-dashboard#live-podcast", label: "Live" },
   { href: "/subscriber-dashboard/library", label: "Library" },
-  { href: "/subscriber-dashboard#schedule", label: "Schedule" },
-  { href: "/subscriber-dashboard#recommendations", label: "For you" },
+  // { href: "/subscriber-dashboard#schedule", label: "Schedule" },
+  // { href: "/subscriber-dashboard#recommendations", label: "For you" },
   { href: "/subscriber-dashboard#questions", label: "Questions" },
 ] as const;
 
@@ -49,12 +49,12 @@ export default function SubscriberNav({ user, onLogout }: SubscriberNavProps) {
                 {item.label}
               </Link>
             ))}
-            <Link
+            {/* <Link
               href="/subscribe"
               className="ml-2 rounded-lg px-3 py-2 text-sm font-medium text-zinc-400 transition hover:text-white focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
             >
               Browse shows
-            </Link>
+            </Link> */}
           </div>
 
           <div className="hidden items-center gap-3 border-l border-zinc-700 pl-4 md:flex">

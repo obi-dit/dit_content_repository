@@ -7,23 +7,24 @@ import { User, UserType } from "@/typings/auth";
 import { Podcast, SubscriptionStatus } from "@/typings/podcast";
 import type {
   DashboardAnnouncement,
+  SubscriberQuestion,
   SubscriberDashboardExtras,
 } from "@/typings/subscriber-dashboard";
 import { announcementService } from "@/services/announcementService";
 import { podcastService } from "@/services/podcastService";
+import { questionService } from "@/services/questionService";
 import DashboardSkipLink from "../components/subscriber-dashboard/DashboardSkipLink";
 import SubscriberNav from "../components/subscriber-dashboard/SubscriberNav";
 import WelcomeSection from "../components/subscriber-dashboard/WelcomeSection";
 import LivePodcastSection from "../components/subscriber-dashboard/LivePodcastSection";
 import PodcastLibraryPreview from "../components/subscriber-dashboard/PodcastLibraryPreview";
-import UpcomingSchedule from "../components/subscriber-dashboard/UpcomingSchedule";
-import RecommendationsStrip from "../components/subscriber-dashboard/RecommendationsStrip";
 import ProfileSubscriptionOverview from "../components/subscriber-dashboard/ProfileSubscriptionOverview";
 import AnnouncementsPanel from "../components/subscriber-dashboard/AnnouncementsPanel";
 import QuestionsPanel from "../components/subscriber-dashboard/QuestionsPanel";
 import SubscribeFooter from "../components/subscribe/SubscribeFooter";
 
 type PageState = "loading" | "ready" | "error" | "not-subscribed";
+const EMPTY_QUESTIONS: SubscriberQuestion[] = [];
 
 export default function SubscriberDashboardPage() {
   const router = useRouter();
@@ -36,15 +37,23 @@ export default function SubscriberDashboardPage() {
   const [announcements, setAnnouncements] = useState<DashboardAnnouncement[]>(
     [],
   );
+  const [questions, setQuestions] = useState<SubscriberQuestion[]>(EMPTY_QUESTIONS);
   const [pageState, setPageState] = useState<PageState>("loading");
   const [errorMessage, setErrorMessage] = useState("");
+  const [loadedAt, setLoadedAt] = useState(0);
 
   const loadDashboardData = useCallback(async () => {
     try {
       setPageState("loading");
       setErrorMessage("");
 
-      const [podcastResult, subscriptionData, extrasData, announcementsRes] =
+      const [
+        podcastResult,
+        subscriptionData,
+        extrasData,
+        announcementsRes,
+        questionsRes,
+      ] =
         await Promise.all([
           podcastService.getPodcasts({ page: 1, limit: 24 }),
           podcastService.getSubscriptionStatus(),
@@ -52,6 +61,7 @@ export default function SubscriberDashboardPage() {
           announcementService.listSubscriberAnnouncements(50).catch(() => ({
             announcements: [] as DashboardAnnouncement[],
           })),
+          questionService.listMyQuestions().catch(() => EMPTY_QUESTIONS),
         ]);
 
       if (!subscriptionData.isActive) {
@@ -63,6 +73,8 @@ export default function SubscriberDashboardPage() {
       setPodcasts(podcastResult.items);
       setExtras(extrasData);
       setAnnouncements(announcementsRes.announcements);
+      setQuestions(questionsRes);
+      setLoadedAt(Date.now());
       setPageState("ready");
     } catch (err) {
       setErrorMessage(
@@ -86,8 +98,16 @@ export default function SubscriberDashboardPage() {
       return;
     }
 
-    setUser(storedUser);
-    void loadDashboardData();
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      setUser(storedUser);
+      void loadDashboardData();
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, [router, loadDashboardData]);
 
   const handleLogout = () => {
@@ -112,15 +132,14 @@ export default function SubscriberDashboardPage() {
 
   const nextUpcoming = useMemo(() => {
     const list = extras?.upcoming ?? [];
-    const now = Date.now();
     const future = list
-      .filter((e) => new Date(e.startsAt).getTime() > now)
+      .filter((e) => new Date(e.startsAt).getTime() > loadedAt)
       .sort(
         (a, b) =>
           new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime(),
       );
     return future[0] ?? list[0] ?? null;
-  }, [extras]);
+  }, [extras, loadedAt]);
 
   if (pageState === "loading") {
     return (
@@ -211,14 +230,6 @@ export default function SubscriberDashboardPage() {
     );
   }
 
-  const emptyExtras: SubscriberDashboardExtras = {
-    upcoming: [],
-    questions: [],
-    announcements: [],
-    recommendations: [],
-  };
-  const data = extras ?? emptyExtras;
-
   return (
     <div className="min-h-screen bg-[#0a0a0a]">
       <DashboardSkipLink />
@@ -239,8 +250,6 @@ export default function SubscriberDashboardPage() {
           <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-10">
             <div className="min-w-0 flex-1 space-y-12 lg:space-y-14">
               <PodcastLibraryPreview episodes={pastEpisodes} />
-              {/* <UpcomingSchedule episodes={data.upcoming} />
-              <RecommendationsStrip items={data.recommendations} /> */}
             </div>
 
             <aside
@@ -252,7 +261,11 @@ export default function SubscriberDashboardPage() {
                 subscription={subscription}
               />
               <AnnouncementsPanel announcements={announcements} />
-              <QuestionsPanel initialQuestions={data.questions} />
+              <QuestionsPanel
+                initialQuestions={questions}
+                livePodcastId={livePodcast?.id}
+                livePodcastTitle={livePodcast?.title}
+              />
             </aside>
           </div>
         </div>
