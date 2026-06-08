@@ -96,19 +96,33 @@ export default function SubscribeFooter() {
                 </a>
               </li>
               <li>
-                <span className="hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="/terms/dit-terms.pdf"
+                  target="_blank"
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
                   Privacy Policy
-                </span>
+                </a>
               </li>
               <li>
-                <span className="hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="/terms/dit-terms.pdf"
+                  target="_blank"
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
                   Content Policy (18+)
-                </span>
+                </a>
               </li>
               <li>
                 <span className="hover:text-white transition-colors cursor-pointer">
-                  Contact Support
+                  Contact Support:
                 </span>
+                <a
+                  href="mailto:info@diversityintechnology.org"
+                  className="ml-2 hover:text-white transition-colors cursor-pointer"
+                >
+                  info@diversityintechnology.org
+                </a>
               </li>
             </ul>
           </div>
