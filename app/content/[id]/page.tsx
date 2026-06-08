@@ -55,9 +55,8 @@ export default function ContentDetailPage() {
       setError(null);
 
       try {
-        const data: PublicContentDetail = await contentService.getPublicContentById(
-          params.id as string
-        );
+        const data: PublicContentDetail =
+          await contentService.getPublicContentById(params.id as string);
 
         setContent({
           id: data.id,
@@ -137,7 +136,8 @@ export default function ContentDetailPage() {
             Content Not Found
           </h1>
           <p className="text-zinc-400 mb-6">
-            {error || "The content you're looking for doesn't exist or has been removed."}
+            {error ||
+              "The content you're looking for doesn't exist or has been removed."}
           </p>
           <Link
             href="/content"

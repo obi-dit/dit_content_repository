@@ -87,9 +87,13 @@ export default function SubscribeFooter() {
             <h3 className="text-white font-bold text-lg mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <span className="hover:text-white transition-colors cursor-pointer">
+                <a
+                  href="/terms/dit-terms.pdf"
+                  target="_blank"
+                  className="hover:text-white transition-colors cursor-pointer"
+                >
                   Terms of Service
-                </span>
+                </a>
               </li>
               <li>
                 <span className="hover:text-white transition-colors cursor-pointer">
