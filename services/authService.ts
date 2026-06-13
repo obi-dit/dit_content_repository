@@ -28,7 +28,7 @@ export interface ResetPasswordResponse {
 
 export const authService = {
   /**
-   * Request password reset - sends email with reset link
+   * Request password reset - sends email with reset token
    */
   forgotPassword: async (
     data: ForgotPasswordRequest

@@ -50,7 +50,7 @@ export default function ForgotPasswordPage() {
               </h1>
               <p className="text-zinc-400 leading-relaxed">
                 If an account exists with <span className="text-zinc-200 font-medium">{email}</span>, 
-                you will receive a password reset link shortly.
+                you will receive a password reset token shortly.
               </p>
             </div>
 
@@ -64,17 +64,23 @@ export default function ForgotPasswordPage() {
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-400 mt-0.5">2.</span>
-                  Click the password reset link in the email
+                  Copy the 5-digit password reset code from the email
                 </li>
                 <li className="flex items-start gap-2">
                   <span className="text-green-400 mt-0.5">3.</span>
-                  Create a new secure password
+                  Enter the code on the reset password page and create a new password
                 </li>
               </ul>
             </div>
 
             {/* Back to Login */}
             <div className="text-center space-y-4">
+              <Link
+                href="/reset-password"
+                className="block w-full py-3 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all"
+              >
+                Enter Reset Code
+              </Link>
               <Link
                 href="/login"
                 className="inline-flex items-center gap-2 text-blue-400 hover:text-blue-300 font-medium transition-colors"
@@ -119,7 +125,7 @@ export default function ForgotPasswordPage() {
               Forgot Password?
             </h1>
             <p className="text-zinc-400">
-              No worries! Enter your email and we'll send you a reset link.
+              No worries! Enter your email and we'll send you a reset token.
             </p>
           </div>
 
@@ -197,7 +203,7 @@ export default function ForgotPasswordPage() {
                   Sending...
                 </span>
               ) : (
-                "Send Reset Link"
+                "Send Reset Token"
               )}
             </button>
           </form>

@@ -43,7 +43,7 @@ export default function Hero() {
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
             <Link
-              href="/signup"
+              href="/login"
               className="group px-8 py-4 rounded-lg bg-zinc-900 dark:bg-zinc-50 text-white dark:text-zinc-900 font-semibold text-lg hover:bg-zinc-800 dark:hover:bg-zinc-100 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
               Get Started Free

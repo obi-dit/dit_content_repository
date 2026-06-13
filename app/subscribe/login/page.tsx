@@ -139,6 +139,15 @@ export default function SubscribeLoginPage() {
               </div>
             </div>
 
+            <div className="mt-2 flex justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-amber-400 hover:text-amber-300 transition-colors"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={isLoading || !email.trim() || !password}

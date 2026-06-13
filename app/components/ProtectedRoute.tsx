@@ -19,6 +19,8 @@ const ProtectedRoute = ({
     const isUnauthenticatedRoute = [
       "/login",
       "/signup",
+      "/forgot-password",
+      "/reset-password",
       "/",
       "/subscribe",
       "/subscribe/login",

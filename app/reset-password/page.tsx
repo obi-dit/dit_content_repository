@@ -1,28 +1,32 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useState, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { HiLockClosed, HiCheckCircle, HiExclamationCircle, HiArrowLeft } from "react-icons/hi";
+import { HiLockClosed, HiCheckCircle, HiArrowLeft, HiKey } from "react-icons/hi";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import authService from "@/services/authService";
 
 function ResetPasswordContent() {
-  const router = useRouter();
   const searchParams = useSearchParams();
-  const token = searchParams.get("token");
+  const tokenFromUrl = searchParams.get("token");
 
+  const [resetToken, setResetToken] = useState(tokenFromUrl || "");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(true);
+  const [isVerifying, setIsVerifying] = useState(false);
   const [isValidToken, setIsValidToken] = useState(false);
   const [error, setError] = useState("");
   const [isSuccess, setIsSuccess] = useState(false);
   const [userInfo, setUserInfo] = useState<{ email?: string; firstName?: string }>({});
-  const [isFocused, setIsFocused] = useState({ newPassword: false, confirmPassword: false });
+  const [isFocused, setIsFocused] = useState({
+    resetToken: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
 
   // Password strength indicators
   const passwordChecks = {
@@ -49,30 +53,37 @@ function ResetPasswordContent() {
     return "Strong";
   };
 
-  // Verify token on mount
-  useEffect(() => {
-    const verifyToken = async () => {
-      if (!token) {
-        setIsVerifying(false);
-        setIsValidToken(false);
-        return;
-      }
+  const handleVerifyToken = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    setError("");
 
-      try {
-        const result = await authService.verifyResetToken(token);
-        setIsValidToken(result.valid);
-        if (result.valid) {
-          setUserInfo({ email: result.email, firstName: result.firstName });
-        }
-      } catch (err) {
-        setIsValidToken(false);
-      } finally {
-        setIsVerifying(false);
-      }
-    };
+    if (!resetToken.trim()) {
+      setError("Please enter your reset token");
+      return;
+    }
 
-    verifyToken();
-  }, [token]);
+    if (!/^\d{5}$/.test(resetToken.trim())) {
+      setError("Reset token must be a 5-digit code");
+      return;
+    }
+
+    setIsVerifying(true);
+
+    try {
+      const result = await authService.verifyResetToken(resetToken.trim());
+      setIsValidToken(result.valid);
+      if (result.valid) {
+        setUserInfo({ email: result.email, firstName: result.firstName });
+      } else {
+        setError("Invalid or expired reset token. Please request a new one.");
+      }
+    } catch (err) {
+      setIsValidToken(false);
+      setError("Invalid or expired reset token. Please request a new one.");
+    } finally {
+      setIsVerifying(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -94,7 +105,7 @@ function ResetPasswordContent() {
 
     try {
       await authService.resetPassword({
-        token: token!,
+        token: resetToken.trim(),
         newPassword,
         confirmPassword,
       });
@@ -106,65 +117,124 @@ function ResetPasswordContent() {
     }
   };
 
-  // Loading state while verifying token
-  if (isVerifying) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-zinc-800 mb-4">
-            <svg
-              className="animate-spin h-8 w-8 text-blue-500"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle
-                className="opacity-25"
-                cx="12"
-                cy="12"
-                r="10"
-                stroke="currentColor"
-                strokeWidth="4"
-              ></circle>
-              <path
-                className="opacity-75"
-                fill="currentColor"
-                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-              ></path>
-            </svg>
-          </div>
-          <p className="text-zinc-400">Verifying your reset link...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Invalid or expired token
+  // Token entry step
   if (!isValidToken) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4 py-12">
-        <div className="w-full max-w-md">
-          <div className="rounded-2xl bg-zinc-900/80 backdrop-blur-xl shadow-2xl border border-zinc-800/50 p-8 sm:p-10 text-center">
-            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-red-500/10 border border-red-500/20 mb-6">
-              <HiExclamationCircle className="text-4xl text-red-500" />
+      <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a] px-4 py-12 relative overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-blue-400/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/10 rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+
+        <div className="w-full max-w-md relative z-10">
+          <div className="rounded-2xl bg-zinc-900/80 backdrop-blur-xl shadow-2xl border border-zinc-800/50 p-8 sm:p-10">
+            <div className="mb-8 text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 mb-4">
+                <HiKey className="text-2xl text-white" />
+              </div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-zinc-50 mb-2">
+                Enter Reset Code
+              </h1>
+              <p className="text-zinc-400">
+                Enter the 5-digit password reset code from your email.
+              </p>
             </div>
-            <h1 className="text-2xl font-bold text-zinc-50 mb-3">
-              Invalid or Expired Link
-            </h1>
-            <p className="text-zinc-400 mb-6">
-              This password reset link is invalid or has expired. Please request a new one.
-            </p>
-            <div className="space-y-3">
+
+            <form onSubmit={handleVerifyToken} className="space-y-6">
+              {error && (
+                <div className="rounded-lg bg-red-900/20 border border-red-800 p-4">
+                  <div className="flex items-center gap-2">
+                    <span className="text-red-400">⚠️</span>
+                    <p className="text-sm text-red-200">{error}</p>
+                  </div>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="resetToken"
+                  className={`block text-sm font-medium transition-colors ${
+                    isFocused.resetToken ? "text-blue-400" : "text-zinc-300"
+                  }`}
+                >
+                  Reset Code
+                </label>
+                <div className="relative">
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <HiKey className="text-zinc-500" />
+                  </div>
+                  <input
+                    id="resetToken"
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete="one-time-code"
+                    maxLength={5}
+                    value={resetToken}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/\D/g, "").slice(0, 5);
+                      setResetToken(value);
+                      setError("");
+                    }}
+                    onFocus={() => setIsFocused({ ...isFocused, resetToken: true })}
+                    onBlur={() => setIsFocused({ ...isFocused, resetToken: false })}
+                    required
+                    className={`w-full pl-10 pr-4 py-3 rounded-lg border-2 transition-all duration-200 bg-zinc-800 text-zinc-50 placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono text-lg tracking-[0.3em] text-center ${
+                      isFocused.resetToken
+                        ? "border-blue-500 shadow-lg shadow-blue-500/20"
+                        : "border-zinc-700"
+                    }`}
+                    placeholder="00000"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                disabled={isVerifying || resetToken.length !== 5}
+                className="w-full py-3.5 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-zinc-900 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] shadow-lg"
+              >
+                {isVerifying ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg
+                      className="animate-spin h-5 w-5"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Verifying Token...
+                  </span>
+                ) : (
+                  "Continue"
+                )}
+              </button>
+            </form>
+
+            <div className="mt-6 text-center space-y-3">
               <Link
                 href="/forgot-password"
-                className="block w-full py-3 px-4 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold hover:from-blue-700 hover:to-purple-700 transition-all"
+                className="block text-sm text-blue-400 hover:text-blue-300 font-medium transition-colors"
               >
-                Request New Link
+                Request a new token
               </Link>
               <Link
                 href="/login"
-                className="block w-full py-3 px-4 rounded-lg bg-zinc-800 text-zinc-300 font-medium hover:bg-zinc-700 transition-colors"
+                className="inline-flex items-center gap-2 text-sm text-zinc-400 hover:text-zinc-200 transition-colors"
               >
+                <HiArrowLeft />
                 Back to Login
               </Link>
             </div>
