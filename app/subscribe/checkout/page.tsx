@@ -18,6 +18,71 @@ import { subscriptionService } from "@/services/subscriptionService";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const MIN_SUBSCRIBER_AGE = 18;
 
+const checkoutTextFieldSx = {
+  "& .MuiInputLabel-root": {
+    color: "#a1a1aa",
+  },
+  "& .MuiInputLabel-root.Mui-focused": {
+    color: "#f59e0b",
+  },
+  "& .MuiOutlinedInput-root": {
+    backgroundColor: "rgba(9, 9, 11, 0.8)",
+    color: "#f4f4f5",
+    "& fieldset": {
+      borderColor: "#3f3f46",
+    },
+    "&:hover fieldset": {
+      borderColor: "rgba(245, 158, 11, 0.5)",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#f59e0b",
+      boxShadow: "0 0 0 2px rgba(245, 158, 11, 0.2)",
+    },
+  },
+  "& .MuiPickersInputBase-root, & .MuiPickersOutlinedInput-root": {
+    backgroundColor: "rgba(9, 9, 11, 0.8)",
+    color: "#f4f4f5",
+    "& fieldset": {
+      borderColor: "#3f3f46",
+    },
+    "&:hover fieldset": {
+      borderColor: "rgba(245, 158, 11, 0.5)",
+    },
+    "&.Mui-focused fieldset": {
+      borderColor: "#f59e0b",
+      boxShadow: "0 0 0 2px rgba(245, 158, 11, 0.2)",
+    },
+  },
+  "& .MuiInputBase-input": {
+    color: "#f4f4f5",
+  },
+  "& .MuiPickersSectionList-root, & .MuiPickersInputBase-sectionsContainer": {
+    color: "#f4f4f5",
+  },
+  "& .MuiSvgIcon-root, & .MuiIconButton-root": {
+    color: "#ffffff",
+  },
+  "& .MuiIconButton-root:hover": {
+    backgroundColor: "rgba(255, 255, 255, 0.08)",
+    color: "#ffffff",
+  },
+  "& .MuiInputBase-input::placeholder": {
+    color: "#71717a",
+    opacity: 1,
+  },
+  "& .MuiInputBase-input:-webkit-autofill": {
+    WebkitBoxShadow: "0 0 0 100px #09090b inset",
+    WebkitTextFillColor: "#f4f4f5",
+    caretColor: "#f4f4f5",
+  },
+  "& .MuiFormHelperText-root": {
+    color: "#71717a",
+  },
+  "& .MuiFormHelperText-root.Mui-error": {
+    color: "#fca5a5",
+  },
+};
+
 interface FieldErrors {
   firstName?: string;
   lastName?: string;
@@ -102,13 +167,15 @@ export default function SubscribeCheckoutPage() {
       setFormData((current) => ({ ...current, [name]: value }));
       setErrors((current) => ({ ...current, [name]: undefined }));
     },
-    []
+    [],
   );
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("cancelled") === "1") {
-      toast.info("Checkout was cancelled. You can try again when you're ready.");
+      toast.info(
+        "Checkout was cancelled. You can try again when you're ready.",
+      );
       window.history.replaceState({}, "", "/subscribe/checkout");
     }
   }, []);
@@ -140,13 +207,15 @@ export default function SubscribeCheckoutPage() {
         toast.error("No payment URL returned. Please try again.");
       } catch (err: unknown) {
         const message =
-          err instanceof Error ? err.message : "Registration failed. Please try again.";
+          err instanceof Error
+            ? err.message
+            : "Registration failed. Please try again.";
         toast.error(message);
       } finally {
         setSubmitting(false);
       }
     },
-    [formData]
+    [formData],
   );
 
   return (
@@ -167,8 +236,9 @@ export default function SubscribeCheckoutPage() {
             Create your account
           </h1>
           <p className="mb-8 text-center text-zinc-400">
-            Enter your details and upload a driver license image for age verification, then
-            you&apos;ll be redirected to secure Stripe checkout.
+            Enter your details and upload a driver license image for age
+            verification, then you&apos;ll be redirected to secure Stripe
+            checkout.
           </p>
 
           <Box
@@ -189,6 +259,7 @@ export default function SubscribeCheckoutPage() {
                     onChange={(e) => updateField("firstName", e.target.value)}
                     error={Boolean(errors.firstName)}
                     helperText={errors.firstName}
+                    sx={checkoutTextFieldSx}
                     fullWidth
                   />
                   <TextField
@@ -200,6 +271,7 @@ export default function SubscribeCheckoutPage() {
                     onChange={(e) => updateField("lastName", e.target.value)}
                     error={Boolean(errors.lastName)}
                     helperText={errors.lastName}
+                    sx={checkoutTextFieldSx}
                     fullWidth
                   />
                 </Stack>
@@ -214,6 +286,7 @@ export default function SubscribeCheckoutPage() {
                   onChange={(e) => updateField("email", e.target.value)}
                   error={Boolean(errors.email)}
                   helperText={errors.email}
+                  sx={checkoutTextFieldSx}
                   fullWidth
                 />
 
@@ -227,6 +300,7 @@ export default function SubscribeCheckoutPage() {
                   onChange={(e) => updateField("password", e.target.value)}
                   error={Boolean(errors.password)}
                   helperText={errors.password}
+                  sx={checkoutTextFieldSx}
                   fullWidth
                 />
 
@@ -237,9 +311,12 @@ export default function SubscribeCheckoutPage() {
                   type="password"
                   autoComplete="new-password"
                   value={formData.confirmPassword}
-                  onChange={(e) => updateField("confirmPassword", e.target.value)}
+                  onChange={(e) =>
+                    updateField("confirmPassword", e.target.value)
+                  }
                   error={Boolean(errors.confirmPassword)}
                   helperText={errors.confirmPassword}
+                  sx={checkoutTextFieldSx}
                   fullWidth
                 />
 
@@ -256,6 +333,7 @@ export default function SubscribeCheckoutPage() {
                       helperText:
                         errors.dateOfBirth ??
                         `You must be at least ${MIN_SUBSCRIBER_AGE} years old.`,
+                      sx: checkoutTextFieldSx,
                     },
                   }}
                 />
@@ -267,8 +345,10 @@ export default function SubscribeCheckoutPage() {
                   type="file"
                   error={Boolean(errors.driversLicense)}
                   helperText={
-                    errors.driversLicense ?? "JPG, PNG, or WebP only. Max size 8MB."
+                    errors.driversLicense ??
+                    "JPG, PNG, or WebP only. Max size 8MB."
                   }
+                  sx={checkoutTextFieldSx}
                   slotProps={{
                     htmlInput: {
                       accept: "image/jpeg,image/png,image/webp",
@@ -315,14 +395,20 @@ export default function SubscribeCheckoutPage() {
 
             <p className="mt-4 text-center text-xs text-zinc-500">
               Already have an account?{" "}
-              <Link href="/subscribe/login" className="text-amber-400 hover:text-amber-300">
+              <Link
+                href="/subscribe/login"
+                className="text-amber-400 hover:text-amber-300"
+              >
                 Member sign in
               </Link>
             </p>
           </Box>
 
           <p className="mt-6 text-center text-sm text-zinc-500">
-            <Link href="/subscribe" className="text-zinc-400 hover:text-zinc-300">
+            <Link
+              href="/subscribe"
+              className="text-zinc-400 hover:text-zinc-300"
+            >
               ← Back to subscribe
             </Link>
           </p>
