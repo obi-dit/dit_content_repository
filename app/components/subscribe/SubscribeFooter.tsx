@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 export default function SubscribeFooter() {
   return (
     <footer className="py-12 px-4 sm:px-6 lg:px-8 bg-zinc-950 text-zinc-400">
@@ -58,7 +59,7 @@ export default function SubscribeFooter() {
             <ul className="space-y-2 text-sm">
               <li>
                 <a
-                  href="#pricing"
+                  href="/subscribe#pricing"
                   className="hover:text-white transition-colors inline-block"
                 >
                   Monthly Plan
@@ -66,7 +67,7 @@ export default function SubscribeFooter() {
               </li>
               <li>
                 <a
-                  href="#pricing"
+                  href="/subscribe#pricing"
                   className="hover:text-white transition-colors inline-block"
                 >
                   Quarterly Plan
@@ -74,7 +75,7 @@ export default function SubscribeFooter() {
               </li>
               <li>
                 <a
-                  href="#pricing"
+                  href="/subscribe#pricing"
                   className="hover:text-white transition-colors inline-block"
                 >
                   Annual Plan
@@ -87,31 +88,28 @@ export default function SubscribeFooter() {
             <h3 className="text-white font-bold text-lg mb-4">Legal</h3>
             <ul className="space-y-2 text-sm">
               <li>
-                <a
-                  href="/terms/dit-terms.pdf"
-                  target="_blank"
-                  className="hover:text-white transition-colors cursor-pointer"
+                <Link
+                  href="/terms/dit-terms#terms-of-service"
+                  className="hover:text-white transition-colors inline-block"
                 >
                   Terms of Service
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/terms/dit-terms.pdf"
-                  target="_blank"
-                  className="hover:text-white transition-colors cursor-pointer"
+                <Link
+                  href="/terms/dit-terms#privacy-policy"
+                  className="hover:text-white transition-colors inline-block"
                 >
                   Privacy Policy
-                </a>
+                </Link>
               </li>
               <li>
-                <a
-                  href="/terms/dit-terms.pdf"
-                  target="_blank"
-                  className="hover:text-white transition-colors cursor-pointer"
+                <Link
+                  href="/terms/dit-terms#content-policy"
+                  className="hover:text-white transition-colors inline-block"
                 >
                   Content Policy (18+)
-                </a>
+                </Link>
               </li>
               <li>
                 <span className="hover:text-white transition-colors cursor-pointer">

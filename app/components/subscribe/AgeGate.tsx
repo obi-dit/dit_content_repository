@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 interface AgeGateProps {
   onVerified: () => void;
@@ -80,8 +81,11 @@ export default function AgeGate({ onVerified }: AgeGateProps) {
         </button>
 
         <p className="text-zinc-600 text-xs mt-4">
-          By entering, you confirm you are at least 18 years old and agree to
-          our Terms of Service.
+          By entering, you confirm you are at least 18 years old and agree to our{" "}
+          <Link href="/terms/dit-terms#terms-of-service" className="text-amber-500/80 hover:text-amber-400">
+            Terms of Service
+          </Link>
+          .
         </p>
       </div>
     </div>

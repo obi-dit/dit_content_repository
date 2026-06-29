@@ -28,15 +28,18 @@ const ProtectedRoute = ({
       "/subscribe/checkout/success",
       "/subscriber-dashboard",
     ];
+    const isPublicRoute =
+      isUnauthenticatedRoute.includes(window.location.pathname) ||
+      window.location.pathname.startsWith("/terms/");
     if (
       !shouldShowAuth &&
-      isUnauthenticatedRoute.includes(window.location.pathname)
+      isPublicRoute
     ) {
       router.replace("/");
     }
     const currentPath = window.location.pathname;
     const isAllowed =
-      isUnauthenticatedRoute.includes(currentPath) ||
+      isPublicRoute ||
       currentPath.startsWith("/subscriber-dashboard/");
     if (!token && !isAllowed) {
       router.replace("/login");
