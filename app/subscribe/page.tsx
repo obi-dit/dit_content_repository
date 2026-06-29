@@ -10,6 +10,22 @@ import Pricing from "../components/subscribe/Pricing";
 import SubscribeFooter from "../components/subscribe/SubscribeFooter";
 
 const AGE_VERIFIED_KEY = "dit_age_verified";
+const NAV_OFFSET_PX = 80;
+
+function scrollToHashSection(hash: string) {
+  const sectionId = hash.replace(/^#/, "");
+  if (!sectionId) {
+    return;
+  }
+
+  const el = document.getElementById(sectionId);
+  if (!el) {
+    return;
+  }
+
+  const top = el.getBoundingClientRect().top + window.scrollY - NAV_OFFSET_PX;
+  window.scrollTo({ top, behavior: "smooth" });
+}
 
 export default function SubscribePage() {
   const [ageVerified, setAgeVerified] = useState(false);
@@ -28,6 +44,26 @@ export default function SubscribePage() {
     sessionStorage.setItem(AGE_VERIFIED_KEY, "true");
     setAgeVerified(true);
   };
+
+  useEffect(() => {
+    if (!mounted || !ageVerified) {
+      return;
+    }
+
+    const scrollFromHash = () => {
+      if (window.location.hash) {
+        scrollToHashSection(window.location.hash);
+      }
+    };
+
+    const timer = window.setTimeout(scrollFromHash, 100);
+    window.addEventListener("hashchange", scrollFromHash);
+
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener("hashchange", scrollFromHash);
+    };
+  }, [mounted, ageVerified]);
 
   if (!mounted) {
     return (

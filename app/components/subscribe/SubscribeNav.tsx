@@ -2,12 +2,44 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { getToken } from "@/utils/auth";
 
+const NAV_OFFSET_PX = 80;
+
+function scrollToSubscribeSection(sectionId: string) {
+  const el = document.getElementById(sectionId);
+  if (!el) {
+    return false;
+  }
+
+  const top = el.getBoundingClientRect().top + window.scrollY - NAV_OFFSET_PX;
+  window.scrollTo({ top, behavior: "smooth" });
+  window.history.replaceState(null, "", `/subscribe#${sectionId}`);
+  return true;
+}
+
 export default function SubscribeNav() {
+  const router = useRouter();
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const handleSectionNav = (
+    event: React.MouseEvent<HTMLAnchorElement>,
+    sectionId: string
+  ) => {
+    event.preventDefault();
+    setIsMobileMenuOpen(false);
+
+    if (pathname === "/subscribe") {
+      scrollToSubscribeSection(sectionId);
+      return;
+    }
+
+    router.push(`/subscribe#${sectionId}`);
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,13 +70,15 @@ export default function SubscribeNav() {
 
           <div className="hidden md:flex items-center gap-6">
             <a
-              href="#shows"
+              href="/subscribe#shows"
+              onClick={(event) => handleSectionNav(event, "shows")}
               className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
             >
               Shows
             </a>
             <a
-              href="#pricing"
+              href="/subscribe#pricing"
+              onClick={(event) => handleSectionNav(event, "pricing")}
               className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
             >
               Pricing
@@ -102,15 +136,15 @@ export default function SubscribeNav() {
           <div className="md:hidden py-4 border-t border-zinc-800 animate-in slide-in-from-top">
             <div className="flex flex-col gap-4">
               <a
-                href="#shows"
-                onClick={() => setIsMobileMenuOpen(false)}
+                href="/subscribe#shows"
+                onClick={(event) => handleSectionNav(event, "shows")}
                 className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
               >
                 Shows
               </a>
               <a
-                href="#pricing"
-                onClick={() => setIsMobileMenuOpen(false)}
+                href="/subscribe#pricing"
+                onClick={(event) => handleSectionNav(event, "pricing")}
                 className="text-sm font-medium text-zinc-400 hover:text-white transition-colors"
               >
                 Pricing
