@@ -45,6 +45,7 @@ export interface RequestConfig {
   timeout?: number;
   headers?: Record<string, string>;
   onUploadProgress?: (progressEvent: AxiosProgressEvent) => void;
+  isSubscriberLogin?: boolean;
 }
 
 export class HttpService {
@@ -77,7 +78,9 @@ export class HttpService {
     this.axiosInstance.interceptors.request.use(
       (axiosConfig: InternalAxiosRequestConfig) => {
         // Skip auth if specified in metadata
-        const skipAuth = (axiosConfig as InternalAxiosRequestConfig & { skipAuth?: boolean }).skipAuth;
+        const skipAuth = (
+          axiosConfig as InternalAxiosRequestConfig & { skipAuth?: boolean }
+        ).skipAuth;
         if (!skipAuth) {
           const token = this.getAuthToken();
           if (token) {
@@ -87,7 +90,7 @@ export class HttpService {
 
         return axiosConfig;
       },
-      (error) => Promise.reject(error)
+      (error) => Promise.reject(error),
     );
 
     // Response interceptor - handle errors
@@ -95,7 +98,7 @@ export class HttpService {
       (response) => response,
       (error: AxiosError<HttpErrorResponse>) => {
         return this.handleError(error);
-      }
+      },
     );
   }
 
@@ -148,10 +151,14 @@ export class HttpService {
       this.clearAuthToken();
       if (typeof window !== "undefined") {
         //check if the current path is the login page
-        if (window.location.pathname !== "/login") {
+        console.log("login path", window.location.pathname);
+        if (window.location.pathname === "/subscribe/login") {
+          window.location.href = "/subscribe/login";
+        } else if (window.location.pathname !== "/login") {
           window.location.href = "/login";
+        } else {
+          window.location.href = "/";
         }
-       
       }
     }
 
@@ -185,8 +192,8 @@ export class HttpService {
           (typeof dataMessage === "string"
             ? dataMessage
             : Array.isArray(dataMessage)
-            ? dataMessage[0]
-            : undefined) ||
+              ? dataMessage[0]
+              : undefined) ||
           permissionErrorMessage;
       }
 
@@ -204,7 +211,9 @@ export class HttpService {
   /**
    * Build axios config from request config
    */
-  private buildAxiosConfig(config: RequestConfig = {}): AxiosRequestConfig & { skipAuth?: boolean } {
+  private buildAxiosConfig(
+    config: RequestConfig = {},
+  ): AxiosRequestConfig & { skipAuth?: boolean } {
     const axiosConfig: AxiosRequestConfig & { skipAuth?: boolean } = {};
 
     if (config.params) {
@@ -245,7 +254,7 @@ export class HttpService {
   async post<T>(
     endpoint: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<T> {
     const axiosConfig = this.buildAxiosConfig(config);
 
@@ -257,7 +266,11 @@ export class HttpService {
       };
     }
 
-    const response = await this.axiosInstance.post<T>(endpoint, data, axiosConfig);
+    const response = await this.axiosInstance.post<T>(
+      endpoint,
+      data,
+      axiosConfig,
+    );
     return response.data;
   }
 
@@ -267,10 +280,14 @@ export class HttpService {
   async put<T>(
     endpoint: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<T> {
     const axiosConfig = this.buildAxiosConfig(config);
-    const response = await this.axiosInstance.put<T>(endpoint, data, axiosConfig);
+    const response = await this.axiosInstance.put<T>(
+      endpoint,
+      data,
+      axiosConfig,
+    );
     return response.data;
   }
 
@@ -280,10 +297,14 @@ export class HttpService {
   async patch<T>(
     endpoint: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<T> {
     const axiosConfig = this.buildAxiosConfig(config);
-    const response = await this.axiosInstance.patch<T>(endpoint, data, axiosConfig);
+    const response = await this.axiosInstance.patch<T>(
+      endpoint,
+      data,
+      axiosConfig,
+    );
     return response.data;
   }
 
