@@ -6,6 +6,7 @@ import { User } from "@/typings/auth";
 
 const DESKTOP_LINKS = [
   { href: "/subscriber-dashboard#live-podcast", label: "Live" },
+  { href: "/subscriber-dashboard#shows", label: "Shows" },
   { href: "/subscriber-dashboard/library", label: "Library" },
   // { href: "/subscriber-dashboard#schedule", label: "Schedule" },
   // { href: "/subscriber-dashboard#recommendations", label: "For you" },

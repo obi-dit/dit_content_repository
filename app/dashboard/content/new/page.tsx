@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Content, contentService } from "@/services/contentService";
+import { Show, showService } from "@/services/showService";
 import { getUser } from "@/utils/auth";
 
 export default function NewContentPage() {
@@ -17,6 +18,7 @@ export default function NewContentPage() {
     imageUrl: string;
     videoUrl: string;
     isLive: boolean;
+    showId: string;
   }>({
     title: "",
     type: "Article",
@@ -26,7 +28,10 @@ export default function NewContentPage() {
     imageUrl: "",
     videoUrl: "",
     isLive: false,
+    showId: "",
   });
+  const [shows, setShows] = useState<Show[]>([]);
+  const [showsLoading, setShowsLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState<File | null>(null);
@@ -48,6 +53,38 @@ export default function NewContentPage() {
     "Capstone Project",
   ];
 
+  useEffect(() => {
+    if (formData.type !== "Podcast") {
+      return;
+    }
+
+    let cancelled = false;
+
+    const loadShows = async () => {
+      setShowsLoading(true);
+      try {
+        const items = await showService.getShows();
+        if (!cancelled) {
+          setShows(items);
+        }
+      } catch {
+        if (!cancelled) {
+          setError("Failed to load shows. Please refresh and try again.");
+        }
+      } finally {
+        if (!cancelled) {
+          setShowsLoading(false);
+        }
+      }
+    };
+
+    loadShows();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [formData.type]);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
@@ -57,7 +94,9 @@ export default function NewContentPage() {
     setFormData((prev) => ({
       ...prev,
       [name]: value,
-      ...(name === "type" && value !== "Podcast" ? { isLive: false } : {}),
+      ...(name === "type" && value !== "Podcast"
+        ? { isLive: false, showId: "" }
+        : {}),
     }));
     setError("");
   };
@@ -149,6 +188,11 @@ export default function NewContentPage() {
       return;
     }
 
+    if (formData.type === "Podcast" && !formData.showId) {
+      setError("Please select a show for this podcast");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -217,6 +261,7 @@ export default function NewContentPage() {
         imageUrl: finalImageUrl || undefined,
         videoUrl: finalVideoUrl || undefined,
         isLive: formData.type === "Podcast" ? formData.isLive : false,
+        showId: formData.type === "Podcast" ? formData.showId : undefined,
       };
 
       await contentService.createContent(contentData);
@@ -342,7 +387,38 @@ export default function NewContentPage() {
 
           {/* Live podcast (Podcast type only) */}
           {formData.type === "Podcast" && (
-            <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-6 border-l-4 border-l-rose-500 dark:border-l-rose-400">
+            <>
+              <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-6">
+                <label
+                  htmlFor="showId"
+                  className="block text-sm font-medium text-zinc-700 dark:text-zinc-300 mb-2"
+                >
+                  Show *
+                </label>
+                <select
+                  id="showId"
+                  name="showId"
+                  value={formData.showId}
+                  onChange={handleChange}
+                  required
+                  disabled={showsLoading}
+                  className="w-full px-4 py-3 rounded-lg border border-zinc-300 dark:border-zinc-700 bg-white dark:bg-zinc-900 text-zinc-900 dark:text-zinc-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors disabled:opacity-60"
+                >
+                  <option value="">
+                    {showsLoading ? "Loading shows..." : "Select a show"}
+                  </option>
+                  {shows.map((show) => (
+                    <option key={show.id} value={show.id}>
+                      {show.icon} {show.title} ({show.category})
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-2 text-xs text-zinc-500 dark:text-zinc-400">
+                  Choose which podcast show this episode belongs to.
+                </p>
+              </div>
+
+              <div className="bg-white dark:bg-zinc-800 rounded-xl border border-zinc-200 dark:border-zinc-700 p-6 border-l-4 border-l-rose-500 dark:border-l-rose-400">
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div>
                   <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-50">
@@ -374,7 +450,8 @@ export default function NewContentPage() {
                   </label>
                 </div>
               </div>
-            </div>
+              </div>
+            </>
           )}
 
           {/* Description */}

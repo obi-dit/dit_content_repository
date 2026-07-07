@@ -10,6 +10,7 @@ export interface Podcast {
   watchUrl?: string;
   imageUrl?: string;
   videoUrl?: string;
+  showId?: string;
 }
 
 export interface PodcastDetail extends Podcast {

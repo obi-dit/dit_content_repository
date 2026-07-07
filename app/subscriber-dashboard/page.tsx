@@ -13,11 +13,13 @@ import type {
 import { announcementService } from "@/services/announcementService";
 import { podcastService } from "@/services/podcastService";
 import { questionService } from "@/services/questionService";
+import { showService, ShowWithPodcasts } from "@/services/showService";
 import DashboardSkipLink from "../components/subscriber-dashboard/DashboardSkipLink";
 import SubscriberNav from "../components/subscriber-dashboard/SubscriberNav";
 import WelcomeSection from "../components/subscriber-dashboard/WelcomeSection";
 import LivePodcastSection from "../components/subscriber-dashboard/LivePodcastSection";
 import PodcastLibraryPreview from "../components/subscriber-dashboard/PodcastLibraryPreview";
+import ShowsSection from "../components/subscriber-dashboard/ShowsSection";
 import ProfileSubscriptionOverview from "../components/subscriber-dashboard/ProfileSubscriptionOverview";
 import AnnouncementsPanel from "../components/subscriber-dashboard/AnnouncementsPanel";
 import QuestionsPanel from "../components/subscriber-dashboard/QuestionsPanel";
@@ -38,6 +40,7 @@ export default function SubscriberDashboardPage() {
     [],
   );
   const [questions, setQuestions] = useState<SubscriberQuestion[]>(EMPTY_QUESTIONS);
+  const [showsWithPodcasts, setShowsWithPodcasts] = useState<ShowWithPodcasts[]>([]);
   const [pageState, setPageState] = useState<PageState>("loading");
   const [errorMessage, setErrorMessage] = useState("");
   const [loadedAt, setLoadedAt] = useState(0);
@@ -53,6 +56,7 @@ export default function SubscriberDashboardPage() {
         extrasData,
         announcementsRes,
         questionsRes,
+        showsRes,
       ] =
         await Promise.all([
           podcastService.getPodcasts({ page: 1, limit: 24 }),
@@ -62,6 +66,7 @@ export default function SubscriberDashboardPage() {
             announcements: [] as DashboardAnnouncement[],
           })),
           questionService.listMyQuestions().catch(() => EMPTY_QUESTIONS),
+          showService.getShowsWithPodcasts().catch(() => [] as ShowWithPodcasts[]),
         ]);
 
       if (!subscriptionData.isActive) {
@@ -74,6 +79,7 @@ export default function SubscriberDashboardPage() {
       setExtras(extrasData);
       setAnnouncements(announcementsRes.announcements);
       setQuestions(questionsRes);
+      setShowsWithPodcasts(showsRes);
       setLoadedAt(Date.now());
       setPageState("ready");
     } catch (err) {
@@ -249,6 +255,7 @@ export default function SubscriberDashboardPage() {
         <div className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 lg:px-8">
           <div className="flex flex-col gap-10 lg:flex-row lg:items-start lg:gap-10">
             <div className="min-w-0 flex-1 space-y-12 lg:space-y-14">
+              <ShowsSection shows={showsWithPodcasts} />
               <PodcastLibraryPreview episodes={pastEpisodes} />
             </div>
 

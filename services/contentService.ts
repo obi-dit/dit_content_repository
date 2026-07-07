@@ -11,6 +11,7 @@ export interface Content {
   imageUrl?: string;
   videoUrl?: string;
   isLive?: boolean;
+  showId?: string;
 }
 
 export interface PublicContent {
