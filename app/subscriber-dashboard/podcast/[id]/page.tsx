@@ -9,6 +9,7 @@ import { getToken, getUser, logout } from "@/utils/auth";
 import { UserType } from "@/typings/auth";
 import SubscriberNav from "@/app/components/subscriber-dashboard/SubscriberNav";
 import SubscribeFooter from "@/app/components/subscribe/SubscribeFooter";
+import { useSubscriptionAccess } from "@/app/components/subscriber-dashboard/SubscriptionAccessGate";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("en-US", {
@@ -23,6 +24,8 @@ export default function PodcastDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
+  const { isActive, isExpired, isLoading: accessLoading } =
+    useSubscriptionAccess();
 
   const [podcast, setPodcast] = useState<PodcastDetail | null>(null);
   const [loading, setLoading] = useState(true);
@@ -57,15 +60,22 @@ export default function PodcastDetailPage() {
   }, [id]);
 
   useEffect(() => {
+    if (accessLoading) return;
+    if (isExpired || !isActive) {
+      setLoading(false);
+      setPodcast(null);
+      setError("");
+      return;
+    }
     void load();
-  }, [load]);
+  }, [load, accessLoading, isExpired, isActive]);
 
   const handleLogout = () => {
     logout();
     router.replace("/subscribe/login");
   };
 
-  if (loading) {
+  if (accessLoading || loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#0a0a0a]">
         <div className="text-center">
@@ -74,6 +84,42 @@ export default function PodcastDetailPage() {
             <div className="absolute inset-0 animate-spin rounded-full border-2 border-amber-500 border-t-transparent" />
           </div>
           <p className="text-sm text-zinc-400">Loading episode…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isExpired) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a]" aria-hidden="true">
+        <SubscriberNav user={user} onLogout={handleLogout} />
+        <div className="mx-auto max-w-4xl px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold text-zinc-50">Episode locked</h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            Renew your subscription to watch premium episodes.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isActive) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a]">
+        <SubscriberNav user={user} onLogout={handleLogout} />
+        <div className="mx-auto max-w-md px-4 py-16 text-center">
+          <h1 className="text-2xl font-bold text-zinc-50">
+            Subscription required
+          </h1>
+          <p className="mt-2 text-sm text-zinc-500">
+            You need an active lounge pass to watch this episode.
+          </p>
+          <Link
+            href="/subscribe/checkout"
+            className="mt-6 inline-flex rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 px-5 py-2.5 text-sm font-semibold text-white"
+          >
+            Complete checkout
+          </Link>
         </div>
       </div>
     );

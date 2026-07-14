@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { User } from "@/typings/auth";
 import type { SubscriptionStatus } from "@/typings/podcast";
+import { useSubscriptionAccess } from "./SubscriptionAccessGate";
 
 interface ProfileSubscriptionOverviewProps {
   user: User | null;
@@ -13,6 +14,7 @@ export default function ProfileSubscriptionOverview({
   user,
   subscription,
 }: ProfileSubscriptionOverviewProps) {
+  const { startRenewal, renewing, isExpired } = useSubscriptionAccess();
   const renews = subscription?.expiresAt
     ? new Date(subscription.expiresAt).toLocaleDateString("en-US", {
         month: "short",
@@ -20,6 +22,10 @@ export default function ProfileSubscriptionOverview({
         year: "numeric",
       })
     : null;
+
+  const active = Boolean(
+    subscription?.isActive || subscription?.status === "active",
+  );
 
   return (
     <section
@@ -49,12 +55,16 @@ export default function ProfileSubscriptionOverview({
         <div className="flex items-center gap-2">
           <span
             className={`h-2 w-2 rounded-full ${
-              subscription?.isActive ? "bg-green-500" : "bg-zinc-600"
+              active ? "bg-green-500" : isExpired ? "bg-amber-500" : "bg-zinc-600"
             }`}
             aria-hidden
           />
           <span className="text-sm font-medium text-zinc-300">
-            {subscription?.isActive ? "Active membership" : "Inactive"}
+            {active
+              ? "Active membership"
+              : isExpired
+                ? "Expired"
+                : "Inactive"}
           </span>
         </div>
         {subscription?.plan && (
@@ -66,16 +76,38 @@ export default function ProfileSubscriptionOverview({
           </p>
         )}
         {renews && (
-          <p className="mt-1 text-xs text-zinc-500">Renews on {renews}</p>
+          <p className="mt-1 text-xs text-zinc-500">
+            {active ? `Renews on ${renews}` : `Expired on ${renews}`}
+          </p>
         )}
       </div>
 
-      <Link
-        href="/subscribe"
-        className="mt-4 block w-full rounded-lg border border-zinc-600 py-2.5 text-center text-sm font-medium text-zinc-300 transition hover:border-amber-700/50 hover:text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
-      >
-        Manage membership
-      </Link>
+      {isExpired ? (
+        <button
+          type="button"
+          onClick={() => void startRenewal()}
+          disabled={renewing}
+          className="mt-4 block w-full rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 py-2.5 text-center text-sm font-semibold text-white transition enabled:hover:from-amber-600 enabled:hover:to-orange-700 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+        >
+          {renewing ? "Starting checkout…" : "Renew Subscription"}
+        </button>
+      ) : active ? (
+        <button
+          type="button"
+          onClick={() => void startRenewal()}
+          disabled={renewing}
+          className="mt-4 block w-full rounded-lg border border-zinc-600 py-2.5 text-center text-sm font-medium text-zinc-300 transition enabled:hover:border-amber-700/50 enabled:hover:text-amber-400 disabled:cursor-not-allowed disabled:opacity-60 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+        >
+          {renewing ? "Starting checkout…" : "Renew early"}
+        </button>
+      ) : (
+        <Link
+          href="/subscribe/checkout"
+          className="mt-4 block w-full rounded-lg border border-zinc-600 py-2.5 text-center text-sm font-medium text-zinc-300 transition hover:border-amber-700/50 hover:text-amber-400 focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+        >
+          Complete checkout
+        </Link>
+      )}
     </section>
   );
 }

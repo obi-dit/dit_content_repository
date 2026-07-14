@@ -114,7 +114,7 @@ export class PodcastService extends HttpService {
     try {
       return await this.get<SubscriptionStatus>("/api/subscription/status");
     } catch {
-      return { isActive: false };
+      return { isActive: false, status: "none" };
     }
   }
 

@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import SubscriptionAccessGate from "../components/subscriber-dashboard/SubscriptionAccessGate";
 
 export const metadata: Metadata = {
   title: "Subscriber Dashboard — DIT Podcast Lounge",
@@ -15,5 +16,5 @@ export default function SubscriberDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <>{children}</>;
+  return <SubscriptionAccessGate>{children}</SubscriptionAccessGate>;
 }

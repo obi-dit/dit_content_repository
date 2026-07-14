@@ -26,8 +26,12 @@ export interface PaginatedPodcasts {
   totalPages: number;
 }
 
+export type SubscriptionAccessStatus = "active" | "expired" | "none";
+
 export interface SubscriptionStatus {
   isActive: boolean;
+  /** Prefer this over deriving from isActive alone. */
+  status?: SubscriptionAccessStatus;
   plan?: string;
   expiresAt?: string;
 }

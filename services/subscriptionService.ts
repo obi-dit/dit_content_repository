@@ -1,4 +1,5 @@
 import httpService from "./httpService";
+import type { SubscriptionStatus } from "@/typings/podcast";
 
 export interface RegisterSubscriptionCheckoutRequest {
   firstName: string;
@@ -35,6 +36,21 @@ export const subscriptionService = {
       formData,
       { skipAuth: true }
     );
+  },
+
+  renew: async (): Promise<RegisterSubscriptionCheckoutResponse> => {
+    return httpService.post<RegisterSubscriptionCheckoutResponse>(
+      "/api/subscription/renew",
+      {}
+    );
+  },
+
+  getStatus: async (): Promise<SubscriptionStatus> => {
+    try {
+      return await httpService.get<SubscriptionStatus>("/api/subscription/status");
+    } catch {
+      return { isActive: false, status: "none" };
+    }
   },
 };
 

@@ -24,12 +24,14 @@ import ProfileSubscriptionOverview from "../components/subscriber-dashboard/Prof
 import AnnouncementsPanel from "../components/subscriber-dashboard/AnnouncementsPanel";
 import QuestionsPanel from "../components/subscriber-dashboard/QuestionsPanel";
 import SubscribeFooter from "../components/subscribe/SubscribeFooter";
+import { useSubscriptionAccess } from "../components/subscriber-dashboard/SubscriptionAccessGate";
 
-type PageState = "loading" | "ready" | "error" | "not-subscribed";
+type PageState = "loading" | "ready" | "error" | "not-subscribed" | "expired";
 const EMPTY_QUESTIONS: SubscriberQuestion[] = [];
 
 export default function SubscriberDashboardPage() {
   const router = useRouter();
+  const { isActive, subscription: gateSubscription } = useSubscriptionAccess();
   const [user, setUser] = useState<User | null>(null);
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [subscription, setSubscription] = useState<SubscriptionStatus | null>(
@@ -69,12 +71,27 @@ export default function SubscriberDashboardPage() {
           showService.getShowsWithPodcasts().catch(() => [] as ShowWithPodcasts[]),
         ]);
 
-      if (!subscriptionData.isActive) {
+      const accessStatus =
+        subscriptionData.status ??
+        (subscriptionData.isActive ? "active" : "none");
+
+      setSubscription(subscriptionData);
+
+      if (accessStatus === "none") {
         setPageState("not-subscribed");
         return;
       }
 
-      setSubscription(subscriptionData);
+      if (accessStatus === "expired") {
+        setPodcasts([]);
+        setShowsWithPodcasts([]);
+        setExtras(null);
+        setAnnouncements([]);
+        setQuestions(EMPTY_QUESTIONS);
+        setPageState("expired");
+        return;
+      }
+
       setPodcasts(podcastResult.items);
       setExtras(extrasData);
       setAnnouncements(announcementsRes.announcements);
@@ -115,6 +132,19 @@ export default function SubscriberDashboardPage() {
       cancelled = true;
     };
   }, [router, loadDashboardData]);
+
+  // When renewal webhook activates access, reload premium content without re-login.
+  useEffect(() => {
+    if (isActive && pageState === "expired") {
+      void loadDashboardData();
+    }
+  }, [isActive, pageState, loadDashboardData]);
+
+  useEffect(() => {
+    if (gateSubscription) {
+      setSubscription(gateSubscription);
+    }
+  }, [gateSubscription]);
 
   const handleLogout = () => {
     const subscriber = getUser()?.userType === UserType.SUBSCRIBER;
@@ -202,6 +232,25 @@ export default function SubscriberDashboardPage() {
                 Sign out
               </button>
             </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (pageState === "expired") {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a]" aria-hidden="true">
+        <SubscriberNav user={user} onLogout={handleLogout} />
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
+            <h1 className="text-2xl font-bold text-zinc-50">
+              Premium access paused
+            </h1>
+            <p className="mt-2 text-sm text-zinc-500">
+              Renew your subscription to unlock shows, live episodes, and the
+              library again.
+            </p>
           </div>
         </div>
       </div>

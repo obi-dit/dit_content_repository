@@ -10,11 +10,13 @@ import { podcastService } from "@/services/podcastService";
 import SubscriberNav from "@/app/components/subscriber-dashboard/SubscriberNav";
 import PastEpisodesLibrary from "@/app/components/subscriber-dashboard/PastEpisodesLibrary";
 import SubscribeFooter from "@/app/components/subscribe/SubscribeFooter";
+import { useSubscriptionAccess } from "@/app/components/subscriber-dashboard/SubscriptionAccessGate";
 
-type PageState = "loading" | "ready" | "error" | "not-subscribed";
+type PageState = "loading" | "ready" | "error" | "not-subscribed" | "expired";
 
 export default function PodcastLibraryPage() {
   const router = useRouter();
+  const { isActive, isExpired } = useSubscriptionAccess();
   const [user, setUser] = useState<User | null>(null);
   const [podcasts, setPodcasts] = useState<Podcast[]>([]);
   const [podcastPagination, setPodcastPagination] = useState<Omit<
@@ -34,8 +36,19 @@ export default function PodcastLibraryPage() {
         podcastService.getSubscriptionStatus(),
       ]);
 
-      if (!subscriptionData.isActive) {
+      const accessStatus =
+        subscriptionData.status ??
+        (subscriptionData.isActive ? "active" : "none");
+
+      if (accessStatus === "none") {
         setPageState("not-subscribed");
+        return;
+      }
+
+      if (accessStatus === "expired") {
+        setPodcasts([]);
+        setPodcastPagination(null);
+        setPageState("expired");
         return;
       }
 
@@ -72,6 +85,12 @@ export default function PodcastLibraryPage() {
     setUser(storedUser);
     void loadLibrary();
   }, [router, loadLibrary]);
+
+  useEffect(() => {
+    if (isActive && pageState === "expired") {
+      void loadLibrary();
+    }
+  }, [isActive, pageState, loadLibrary]);
 
   const handleLogout = () => {
     logout();
@@ -122,6 +141,22 @@ export default function PodcastLibraryPage() {
           </div>
         </div>
         <SubscribeFooter />
+      </div>
+    );
+  }
+
+  if (pageState === "expired" || isExpired) {
+    return (
+      <div className="min-h-screen bg-[#0a0a0a]" aria-hidden="true">
+        <SubscriberNav user={user} onLogout={handleLogout} />
+        <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+          <div className="rounded-2xl border border-zinc-800 bg-zinc-900/60 p-8 text-center">
+            <h1 className="text-2xl font-bold text-zinc-50">Library locked</h1>
+            <p className="mt-2 text-sm text-zinc-500">
+              Renew your subscription to browse premium episodes again.
+            </p>
+          </div>
+        </div>
       </div>
     );
   }
