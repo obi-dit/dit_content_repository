@@ -4,72 +4,71 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import Link from "next/link";
 import { getToken } from "@/utils/auth";
 
-const BENEFITS: { title: string; description: string; icon: ReactNode }[] =
-  [
-    {
-      title: "Live podcast streaming",
-      description:
-        "Watch every session as it happens—no delays, no paywalls on the feed.",
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          aria-hidden
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "All featured women",
-      description:
-        "Full access to every featured guest—profiles, appearances, and exclusives in one place.",
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          aria-hidden
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
-          />
-        </svg>
-      ),
-    },
-    {
-      title: "Ask questions live",
-      description:
-        "Join the conversation—submit questions during live sessions and hear real answers.",
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          aria-hidden
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.758.214-7.055.628C3.373 3.861 2.25 5.255 2.25 6.857V16.5Z"
-          />
-        </svg>
-      ),
-    },
-  ];
+const BENEFITS: { title: string; description: string; icon: ReactNode }[] = [
+  {
+    title: "Live podcast streaming",
+    description:
+      "Watch every session as it happens—no delays, no paywalls on the feed.",
+    icon: (
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        aria-hidden
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z"
+        />
+      </svg>
+    ),
+  },
+  {
+    title: "All featured women",
+    description:
+      "Full access to every featured guest—profiles, appearances, and exclusives in one place.",
+    icon: (
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        aria-hidden
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0 1 11.964-3.07M12 6.375a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0Zm8.25 2.25a2.625 2.625 0 1 1-5.25 0 2.625 2.625 0 0 1 5.25 0Z"
+        />
+      </svg>
+    ),
+  },
+  {
+    title: "Ask questions live",
+    description:
+      "Join the conversation—submit questions during live sessions and hear real answers.",
+    icon: (
+      <svg
+        className="w-6 h-6"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth="1.5"
+        stroke="currentColor"
+        aria-hidden
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 0 1 1.037-.443 48.282 48.282 0 0 0 5.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0 0 12 3c-2.392 0-4.758.214-7.055.628C3.373 3.861 2.25 5.255 2.25 6.857V16.5Z"
+        />
+      </svg>
+    ),
+  },
+];
 
 export default function Pricing() {
   const [isVisible, setIsVisible] = useState(false);
@@ -86,7 +85,7 @@ export default function Pricing() {
           }
         });
       },
-      { threshold: 0.12 }
+      { threshold: 0.12 },
     );
 
     const el = sectionRef.current;
@@ -106,10 +105,7 @@ export default function Pricing() {
       ref={sectionRef}
       className="relative py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-b from-zinc-900 via-zinc-950 to-zinc-900 scroll-mt-20 overflow-hidden"
     >
-      <div
-        className="pointer-events-none absolute inset-0"
-        aria-hidden
-      >
+      <div className="pointer-events-none absolute inset-0" aria-hidden>
         <div className="absolute top-1/4 left-1/2 h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-amber-500/10 blur-3xl" />
         <div className="absolute bottom-0 right-0 h-64 w-64 rounded-full bg-orange-600/10 blur-3xl" />
       </div>
@@ -154,7 +150,7 @@ export default function Pricing() {
                 <div className="mt-6 sm:mt-0">
                   <div className="flex items-baseline justify-center gap-1 sm:justify-end">
                     <span className="text-5xl font-bold tracking-tight text-white sm:text-6xl">
-                      $50
+                      $100
                     </span>
                     <span className="text-lg text-zinc-400">/month</span>
                   </div>
