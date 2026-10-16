@@ -39,14 +39,14 @@ export default function SubscribeHero() {
           </h1>
 
           <p className="text-lg sm:text-xl md:text-2xl text-zinc-400 mb-4 max-w-3xl mx-auto leading-relaxed">
-            The premier podcast and video repository for men over 40.
-            Unfiltered conversations, exclusive meet-ups, and content you
-            won&apos;t find anywhere else.
+            The premier podcast and video repository for men over 40. Unfiltered
+            conversations, exclusive meet-ups, and content you won&apos;t find
+            anywhere else.
           </p>
 
           <p className="text-base text-zinc-500 mb-10 max-w-2xl mx-auto">
-            Watch. Listen. Connect. Join a community of like-minded men who
-            know exactly what they want.
+            Watch. Listen. Connect. Join a community of like-minded men who know
+            exactly what they want.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
@@ -54,7 +54,7 @@ export default function SubscribeHero() {
               href="/subscribe/checkout"
               className="group px-8 py-4 rounded-lg bg-gradient-to-r from-amber-500 to-orange-600 text-white font-semibold text-lg hover:from-amber-600 hover:to-orange-700 transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
             >
-              Subscribe Now — $50/mo
+              Subscribe Now — $100/mo
               <span className="inline-block ml-2 group-hover:translate-x-1 transition-transform">
                 →
               </span>
